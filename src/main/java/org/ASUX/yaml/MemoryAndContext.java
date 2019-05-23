@@ -58,7 +58,7 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
      * This is a private LinkedHashMap&lt;String, LinkedHashMap&lt;String, Object&gt; &gt; savedOutputMaps = new LinkedHashMap&lt;&gt;(); .. cannot be null.  Most useful for @see org.ASUX.yaml.BatchYamlProcessor - which allows this this class to lookup !propertyvariable.
      * In case you need access to it - be nice and use it in a read-only manner - use the getter()
      */
-    private final LinkedHashMap<String, LinkedHashMap<String, Object> > savedOutputMaps = new LinkedHashMap<>();
+    private final LinkedHashMap<String, Object> savedOutputMaps = new LinkedHashMap<>();
 
     private final org.ASUX.yaml.CmdInvoker cmdinvoker;
 
@@ -89,7 +89,7 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
      * This class will use this object (this.savedOutputMaps) primarily for passing the replacement-Content and insert-Content (which is NOT the same as --input/-i cmdline option)
      * @return this.savedOutputMaps
      */
-    public LinkedHashMap<String, LinkedHashMap<String, Object> > getSavedOutputMaps() {
+    public LinkedHashMap<String, Object> getSavedOutputMaps() {
         return this.savedOutputMaps;
     }
 
@@ -118,25 +118,25 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * This function saved _inputMap to a reference to a file (_dest parameter must be prefixed with an '@').. or, to a string prefixed with '!' (in which it's saved into Working RAM, Not to disk/file)
+     * This function saves '_val2bRemembered' to a reference to a file (_dest parameter must be prefixed with an '@').. or, to a string prefixed with '!' (in which it's saved into Working RAM, Not to disk/file)
      * @param _dest a javalang.String value - either a filename (must be prefixed with '@'), or a reference to a (new) property-variable within a Batch-file execution (must be prefixed with a '!')
-     * @param _inputMap the object to be saved using the reference provided in _dest paramater
+     * @param _val2bRemembered the object to be saved using the reference provided in _dest paramater
      *  @throws Exception when input-parameter _dest is invalid.  Rather than fail silently, this throws.
      */
-    public void saveDataIntoMemory( String _dest, final LinkedHashMap<String, Object> _inputMap ) throws Exception
+    public void saveDataIntoMemory( String _dest, final Object _val2bRemembered ) throws Exception
     {
-        if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ _dest +"): 1: saving into 'memoryAndContext': " + _inputMap.toString() );
-        if ( _dest == null || _inputMap == null ) return;
+        if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ _dest +"): 1: saving into 'memoryAndContext': " + _val2bRemembered );
+        if ( _dest == null || _val2bRemembered == null ) return;
         _dest = _dest.trim();
         if ( _dest.length() <= 0 )
-            throw new Exception( CLASSNAME +": saveDataIntoMemory: Invalid label/name/reference ["+ _dest +"] provided to save this data --> " + _inputMap.toString() );
+            throw new Exception( CLASSNAME +": saveDataIntoMemory: Invalid label/name/reference ["+ _dest +"] provided to save this data --> " + _val2bRemembered );
 
         final String saveToMapName = _dest.startsWith("!") ?  _dest.substring(1) : _dest;
-        if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ saveToMapName +"): 2: saving into 'memoryAndContext': " + _inputMap.toString() );
+        if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ saveToMapName +"): 2: saving into 'memoryAndContext': " + _val2bRemembered );
         if ( (this.savedOutputMaps != null) && (saveToMapName != null) && (saveToMapName.length() > 0) ) {
             // This can happen only within a BatchYaml-file context.  It only makes any sense (and will only work) within a BatchYaml-file context.
-            this.savedOutputMaps.put( saveToMapName, _inputMap );  // remove '!' as the 1st character in the destination-reference provided
-            if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ _dest +"): saved into 'memoryAndContext' --> " + _inputMap.toString() );
+            this.savedOutputMaps.put( saveToMapName, _val2bRemembered );  // remove '!' as the 1st character in the destination-reference provided
+            if (this.verbose) System.out.println( CLASSNAME +": saveDataIntoMemory("+ _dest +"): saved into 'memoryAndContext' --> " + _val2bRemembered );
         }
     }
 
