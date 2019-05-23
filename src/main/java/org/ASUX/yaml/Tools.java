@@ -78,37 +78,18 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
-
-    /** This function ensures the String form of JSON will work will all the YAML commands: read, list, replace, macro, ..
-     *  I need such a function, as I learned the hard way that libraries do NOT work 100% well.  Only file-formats are the workaorund/ way out.
-     *  I definitely "fgool-proof" method to ensure 'valid' YAML, for error-free processing by the entire org.ASUX.yaml library to work without any issues
-     *  Note: Currently this function is identical to JSON2YAML()!
-     *  @param _jsonStr java.lang.String object
-     *  @return a java.util.LinkedHashMap&lt;String, Object&gt; object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
-     * @throws com.fasterxml.jackson.core.JsonProcessingException if any error using Jackson library
-     * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
-     * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
-     */
-    public LinkedHashMap<String, Object>  JSONlintRemover( final String  _jsonStr )
-                    throws com.fasterxml.jackson.core.JsonProcessingException,
-                            java.io.IOException, Exception
-    {
-        return JSONString2YAML( _jsonStr );
-    }
-
-    //-----------------------------------------------------------------------------------------
-    /** String output variant of JSONlintRemover(String).
+    /** Produces a JSON-String output - by running it through the YAML/JSON libraries to cleanup JSON (example: Replace '=' with ':' etc..)
      *  @param _jsonString java.lang.String object
      *  @return a String object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
      * @throws com.fasterxml.jackson.core.JsonProcessingException if any error using Jackson library
      * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
      * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
      */
-    public String  JSONlintRemoverString( final String  _jsonString )
+    public String  JSONStringlintRemoverString( final String  _jsonString )
                     throws com.fasterxml.jackson.core.JsonProcessingException,
                             java.io.IOException, Exception
     {
-        final LinkedHashMap<String, Object> map = JSONString2YAML( _jsonString );
+        final LinkedHashMap<String, Object> map = JSONString2Map( _jsonString );
         return this.Map2JSONString(map);
     }
 
@@ -145,7 +126,7 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
      *  @return a java.util.LinkedHashMap&lt;String, Object&gt; object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
      *  @throws Exception Any issue whatsoever when dealing with convering YAML/JSON content into Strings and back (as part of lintremoval)
      */
-    public LinkedHashMap<String, Object> lintRemover( final LinkedHashMap<String, Object> _map ) throws Exception 
+    public LinkedHashMap<String, Object> lintRemoverMap( final LinkedHashMap<String, Object> _map ) throws Exception 
     {
         // First write it to java.lang.String object... then, read it back into YAML, using the YamlReder class
 
@@ -157,7 +138,7 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
             // if ( this.verbose ) System.out.println( CLASSNAME + ": JSON2YAML(): created new YAML-String\n" + strwrtr7.toString() +"\n" );
 
             final String s = Map2YAMLString( _map );
-            return YAMLString2YAML( s, false ); // 2nd parameter is 'bWrapScalar' === false;.  's' cannot be a scalar at this point.  If it is, I want things to fail with null-pointer.
+            return YAMLString2Map( s, false ); // 2nd parameter is 'bWrapScalar' === false;.  's' cannot be a scalar at this point.  If it is, I want things to fail with null-pointer.
 
         } catch (java.io.IOException e) {
             if ( this.verbose ) e.printStackTrace(System.err);
@@ -184,7 +165,7 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
      * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
      * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
      */
-    public LinkedHashMap<String, Object>  JSONString2YAML( final String  _jsonString )
+    public LinkedHashMap<String, Object>  JSONString2Map( final String  _jsonString )
                     throws java.io.IOException, Exception
     {
         String wellFormedJSONString = _jsonString;
@@ -195,7 +176,7 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
         } else {
             wellFormedJSONString = _jsonString.replaceAll(":", ": "); // Many libraries do NOT like  'key:value'.  They want a blank after colon like 'key: value'
         }
-        if ( this.verbose ) System.out.println(">>>>>>>>>>>>>>>>>>>> "+ CLASSNAME+": JSONString2YAML(): "+ wellFormedJSONString);
+        if ( this.verbose ) System.out.println(">>>>>>>>>>>>>>>>>>>> "+ CLASSNAME+": JSONString2Map(): "+ wellFormedJSONString);
 
         try {
             final java.io.Reader reader3 = new java.io.StringReader( wellFormedJSONString );
@@ -206,29 +187,47 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
             objMapper.configure( com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
             com.fasterxml.jackson.databind.type.MapType type = objMapper.getTypeFactory().constructMapType( LinkedHashMap.class, String.class, Object.class );
             LinkedHashMap<String, Object> retMap2 = objMapper.readValue( reader3, new com.fasterxml.jackson.core.type.TypeReference< LinkedHashMap<String,Object> >(){}  );
-            if ( this.verbose ) System.out.println( CLASSNAME +" JSONString2YAML("+ _jsonString +"): jsonMap loaded BY OBJECTMAPPER into a LinkedHashMao =" + retMap2 );
-            retMap2 = this.lintRemover( retMap2 ); // this will 'clean/lint-remove'
+            if ( this.verbose ) System.out.println( CLASSNAME +" JSONString2Map("+ _jsonString +"): jsonMap loaded BY OBJECTMAPPER into a LinkedHashMao =" + retMap2 );
+            retMap2 = this.lintRemoverMap( retMap2 ); // this will 'clean/lint-remove'
             return retMap2;
 
         } catch (com.fasterxml.jackson.core.JsonParseException e) {
             if (this.verbose) e.printStackTrace(System.err);
-            if (this.verbose) System.err.println( CLASSNAME+": JSONString2YAML(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (this.verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
             if (this.verbose) e.printStackTrace(System.err);
-            if (this.verbose) System.err.println( CLASSNAME+": JSONString2YAML(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (this.verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         } catch (java.io.IOException e) {
             if (this.verbose) e.printStackTrace(System.err);
-            if (this.verbose) System.err.println( CLASSNAME+": JSONString2YAML(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (this.verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         }
     } // function
 
+
+    /**
+     *  Takes any STRING-form JSON as input - it better be valid JSON - and reads it back as org.yaml.snakeyaml.nodes.Node (compatible with SnakeYAML Library).
+     *  I need such a function, as I learned the hard way that libraries do NOT work 100% well.  Only file-formats are the workaorund/ way out.
+     *  I definitely "fgool-proof" method to ensure 'valid' YAML, for error-free processing by the entire org.ASUX.yaml library to work without any issues
+     *  @param _jsonString a java.lang.String object
+     *  @return a org.yaml.snakeyaml.nodes.Node object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
+     * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
+     * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
+     */
+    public org.yaml.snakeyaml.nodes.Node  JSONString2Node( final String  _jsonString )
+                    throws java.io.IOException, Exception
+    {
+        final LinkedHashMap<String, Object> map = JSONString2Map(_jsonString);
+        final org.yaml.snakeyaml.nodes.Node n = Map2Node( map );
+        return n;
+    }
+
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
-    //-----------------------------------------------------------------------------------------
+
     /** Takes any YAML input - as a LinkedHashmap - and exports it as YAML-String (to java.util.String)
      *  @param _yaml a java.util.LinkedHashMap&lt;String, Object&gt; object, as generated by Jackson http://tutorials.jenkov.com/java-json/jackson-objectmapper.html#read-map-from-json-string 
      *  @return a java.util.LinkedHashMap&lt;String, Object&gt; object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
@@ -236,6 +235,23 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
      */
     public abstract String Map2YAMLString( final LinkedHashMap<String, Object> _yaml ) throws Exception;
 
+    /** Takes any YAML input - as a LinkedHashmap - and exports it as org.yaml.snakeyaml.nodes.Node (compliant with SnakeYAML library)
+     *  @param _yaml a java.util.LinkedHashMap&lt;String, Object&gt; object, as generated by Jackson http://tutorials.jenkov.com/java-json/jackson-objectmapper.html#read-map-from-json-string 
+     *  @return a java.util.LinkedHashMap&lt;String, Object&gt; object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
+     *  @throws Exception Any issue whatsoever when dealing with convering YAML/JSON content into Strings and back (as part of lintremoval)
+     */
+    public abstract org.yaml.snakeyaml.nodes.Node Map2Node( final LinkedHashMap<String, Object> _yaml ) throws Exception;
+
+
+    /**
+     * Takes a org.yaml.snakeyaml.nodes.Node object and converts it into a LinkedHashMap heirarchy that is compatible with ESO TERIC SOFT WARE'S YAML LIBRARY
+     * @param args an instance of org.yaml.snakeyaml.nodes.Node
+     * @return instance of {@link org.ASUX.common.Output.Object} which will contain the appropriate object.
+     * @throws Exception if any invalid Node object hierarchy, or if unimplemented scenarios.
+     */
+    public abstract org.ASUX.common.Output.Object<?> Node2Map( final org.yaml.snakeyaml.nodes.Node _node ) throws Exception;
+
+    //-----------------------------------------------------------------------------------------
     /**
      *  Takes any STRING-form JSON as input - it better be valid JSON - and reads it back as YAML/LinkedHashMap.
      *  I need such a function, as I learned the hard way that libraries do NOT work 100% well.  Only file-formats are the workaorund/ way out.
@@ -246,8 +262,26 @@ public abstract class Tools implements java.io.Serializable, Cloneable {
      * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
      * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
      */
-    public abstract LinkedHashMap<String, Object>  YAMLString2YAML( final String  _yamlString, final boolean _bWrapScalar )
+    public abstract LinkedHashMap<String, Object>  YAMLString2Map( final String  _yamlString, final boolean _bWrapScalar )
                     throws java.io.IOException, Exception;
+
+    /**
+     *  Takes any STRING-form JSON as input - it better be valid JSON - and reads it back as org.yaml.snakeyaml.nodes.Node.
+     *  I need such a function, as I learned the hard way that libraries do NOT work 100% well.  Only file-formats are the workaorund/ way out.
+     *  I definitely "fgool-proof" method to ensure 'valid' YAML, for error-free processing by the entire org.ASUX.yaml library to work without any issues
+     *  @param _yamlString a java.lang.String object
+     *  @param _bWrapScalar true or false.  If the returne value is going to be a SCALAR, do you want it wrapped into a LinkedHashMap or throw instead?
+     *  @return org.yaml.snakeyaml.nodes.Node object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
+     * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
+     * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
+     */
+    public org.yaml.snakeyaml.nodes.Node  YAMLString2Node( final String  _yamlString, final boolean _bWrapScalar )
+                    throws java.io.IOException, Exception
+    {
+        final LinkedHashMap<String, Object> map = YAMLString2Map( _yamlString, false ); // boolean _bWrapScalar is the 2nd parameter
+        final org.yaml.snakeyaml.nodes.Node n = Map2Node( map );
+        return n;
+    }
 
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
