@@ -165,14 +165,14 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     /**
      *  This function is meant to be used by Cmd.main() and by BatchProcessor.java.  Read the code *FIRST*, to see if you can use this function too.
      *  @param _cmdLineArgs yes, everything passed as commandline arguments to the Java program / org.ASUX.yaml.CmdLineArgs
-     *  @param _inputData _the YAML inputData that is the input to pretty much all commands (a java.utils.LinkedHashMap&lt;String, Object&gt; object).
+     *  @param _inputData _the YAML inputData that is the input to pretty much all commands (based on the library it's either a org.yaml.snakeyaml.nodes.Node or a java.utils.LinkedHashMap&lt;String, Object&gt; object).
      *  @return either a String, java.utils.LinkedHashMap&lt;String, Object&gt;
      *  @throws YAMLPath.YAMLPathException if Pattern for YAML-Path provided is either semantically empty or is NOT java.util.Pattern compatible.
      *  @throws FileNotFoundException if the filenames within _cmdLineArgs do NOT exist
      *  @throws IOException if the filenames within _cmdLineArgs give any sort of read/write troubles
      *  @throws Exception by ReplaceYamlCmd method and this nethod (in case of unknown command)
      */
-    public abstract Object processCommand ( CmdLineArgs _cmdLineArgs, final LinkedHashMap<String, Object> _inputData )
+    public abstract Object processCommand ( CmdLineArgs _cmdLineArgs, final Object _inputData )
                 throws FileNotFoundException, IOException, Exception,
                 YAMLPath.YAMLPathException;
 
@@ -203,7 +203,7 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      * @throws IOException if the filenames within _cmdLineArgs give any sort of read/write troubles
      * @throws Exception by ReplaceYamlCmd method and this nethod (in case of unknown command)
      */
-    public abstract void saveDataIntoReference( final String _dest, final LinkedHashMap<String, Object> _inputMap )
+    public abstract void saveDataIntoReference( final String _dest, final Object _inputMap )
                 throws FileNotFoundException, IOException, Exception;
 
     //==============================================================================
