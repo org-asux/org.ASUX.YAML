@@ -48,7 +48,7 @@ import static org.junit.Assert.*;
  * <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com projects. </p>
  * <p> This abstract class is the "wrapper-processor" for the various "YAML-commands" (which traverse a YAML file to do what you want).
  * </p>
- * <p> There are 2 concrete implementation sub-classes: org.ASUX.yaml.CollectionsImpl.CmdInvoker and org.ASUX.yaml.NodeImpl.CmdInvoker</p>
+ * <p> There are 2 concrete implementation sub-classes: org.ASUX.yaml.CollectionsImpl.CmdInvoker and org.ASUX.YAML.NodeImpl.CmdInvoker</p>
  *
  * <p> The 4 YAML-COMMANDS are: <b>read/query, list, delete</b> and <b>replace</b>. </p>
  * <p> See full details of how to use these commands - in this GitHub project's wiki - or - in
@@ -97,17 +97,16 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     }
 
     /**
-     *  Variation of constructor that allows you to pass-in memory from another previously existing instance of this class.  Useful within {@link BatchYamlProcessor} which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
+     *  Variation of constructor that allows you to pass-in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.NodeImp.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
      *  @param _verbose Whether you want deluge of debug-output onto System.out.
      *  @param _showStats Whether you want a final summary onto console / System.out
-     *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within {@link BatchYamlProcessor} which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
-     *  @param _tools reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.yaml.NodeImpl.Tools
+     *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.CollectionImpl.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
+     *  @param _tools reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
      */
     public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext, final Tools _tools ) {
         this.verbose = _verbose;
 
         this.tools = _tools;
-        this.tools.setCmdInvoker( this );
 
         if ( _memoryAndContext == null )
             this.memoryAndContext = new MemoryAndContext( _verbose, _showStats, this );
@@ -128,8 +127,8 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * The constructor to this class (based on the actual subclass implementation of CmdInvoker) should also pass in the APPROPRIATE instance of subclass of org.ASUX.yaml.Tools class - either org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.yaml.NodeImpl.Tools
-     * @return reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.yaml.NodeImpl.Tools
+     * The constructor to this class (based on the actual subclass implementation of CmdInvoker) should also pass in the APPROPRIATE instance of subclass of org.ASUX.yaml.Tools class - either org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
+     * @return reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
      */
     public Tools getTools() {
         return this.tools;
@@ -210,4 +209,24 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
+    /**
+     *  <p>This method needs to supplement org.ASUX.common.Utils.deepClone() only because the MemoryAndContext instance-variable has org.yaml.snakeyaml.nodes.Node (created via SnakeYAML library and is therefore NOT serializable).</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     *  <p>So, after a deepClone() of CmdInvoker.java .. you'll need to call: </p>
+     *  <p> <code> clone.setYamlLibrary( origObj.getYamlLibrary() ); </code> <br>
+     *  <p> <code> java.utils.LinkedHashMap&lt;String, Object&gt; tmp = new java.utils.LinkedHashMap&lt;String, Object&gt;(); </code> <br>
+     *  <p> <code> tmp.putAll( origObj.getSavedOutputMaps() ); </code> <br>
+     *  <p> <code> clone.setSavedOutputMaps( tmp ); </code> <br>
+     *  @param origObj the object to be cloned - cannot be null (will throw NullPointerException)
+     *  @return a properly cloned and re-initiated clone of the original
+     *  @throws Exception when org.ASUX.common.Utils.deepClone clones the core of this class-instance 
+     */
+    public static CmdInvoker deepClone( final CmdInvoker origObj ) throws Exception {
+        final org.ASUX.yaml.CmdInvoker newCmdinvoker = org.ASUX.common.Utils.deepClone( origObj );
+        newCmdinvoker.setYamlLibrary( origObj.getYamlLibrary() );
+        final LinkedHashMap<String, Object> tmp = new LinkedHashMap<String, Object>();
+        tmp.putAll( origObj.getMemoryAndContext().getSavedOutputMaps() );
+        newCmdinvoker.getMemoryAndContext().setSavedOutputMaps( tmp );
+        return newCmdinvoker;
+    }
 }
