@@ -55,16 +55,27 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
 	public final boolean showStats;
 
     /**
-     * This is a private LinkedHashMap&lt;String, LinkedHashMap&lt;String, Object&gt; &gt; savedOutputMaps = new LinkedHashMap&lt;&gt;(); .. cannot be null.  Most useful for @see org.ASUX.yaml.BatchYamlProcessor - which allows this this class to lookup !propertyvariable.
-     * In case you need access to it - be nice and use it in a read-only manner - use the getter()
+     *  <p>This is a private LinkedHashMap&lt;String, LinkedHashMap&lt;String, Object&gt; &gt; savedOutputMaps = new LinkedHashMap&lt;&gt;(); .. cannot be null.  Most useful for @see org.ASUX.yaml.BatchYamlProcessor - which allows this this class to lookup !propertyvariable.</p>
+     *  <p>In case you need access to it - be nice and use it in a read-only manner - use the getter()</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     *  <p>The YAML loaded as org.yaml.snakeyaml.nodes.Node via SnakeYAML library is NOT serializable.  *Ugh*</p>
+     *  <p>So, we are FORCED to make this.savedOutputMaps transient, and therefore are FORCED to offer this setter()<p>
+     *  <p>.. and after a deepClone() of this/CmdInvoker.java .. you'll need to call: </p>
+     *  <p> <code> LinkedHashMap<String, Object> tmp = new LinkedHashMap<String, Object>(); </code> <br>
+     *  <p> <code> tmp.putAll( oldObj.getSavedOutputMaps() ); </code> <br>
+     *  <p> <code> newObj.setSavedOutputMaps( tmp ); </code> <br>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
      */
-    private final LinkedHashMap<String, Object> savedOutputMaps = new LinkedHashMap<>();
+    private transient LinkedHashMap<String, Object> savedOutputMaps = new LinkedHashMap<>();
 
     private final org.ASUX.yaml.CmdInvoker cmdinvoker;
 
     //======================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //======================================================================
+
     /** The only Constructor.
      *  @param _verbose Whether you want deluge of debug-output onto System.out
      *  @param _showStats Whether you want a final summary onto console / System.out
@@ -91,6 +102,19 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
      */
     public LinkedHashMap<String, Object> getSavedOutputMaps() {
         return this.savedOutputMaps;
+    }
+
+    /**
+     *  <p>This allows this class to interact better with BatchYamlProcessor.java, which is the authoritative source of all "saveAs" outputs.</p>
+     *  <p>This class will use this object (this.savedOutputMaps) primarily for passing the replacement-Content and insert-Content (which is NOT the same as --input/-i cmdline option).</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     *  <p>The YAML loaded as org.yaml.snakeyaml.nodes.Node via SnakeYAML library is NOT serializable.  *Ugh*</p>
+     *  <p>So, we are FORCED to make this.savedOutputMaps transient, and therefore are FORCED to offer this setter()</p>
+     *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
+     * @param _savedOutputMaps from another instance of MemoryAndContext.class (by calling that other instance's {@link #getSavedOutputMaps})
+     */
+    public void setSavedOutputMaps( LinkedHashMap<String, Object>  _savedOutputMaps ) {
+        this.savedOutputMaps = _savedOutputMaps;
     }
 
     //======================================================================
