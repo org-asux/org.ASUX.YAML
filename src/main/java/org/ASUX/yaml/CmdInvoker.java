@@ -82,8 +82,6 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      */
     protected final MemoryAndContext memoryAndContext;
 
-    protected final Tools tools;
-
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
@@ -93,7 +91,7 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      *  @param _showStats Whether you want a final summary onto console / System.out
      */
     public CmdInvoker( final boolean _verbose, final boolean _showStats ) {
-        this( _verbose, _showStats, null, null );
+        this( _verbose, _showStats, null );
     }
 
     /**
@@ -103,10 +101,8 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.CollectionImpl.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
      *  @param _tools reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
      */
-    public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext, final Tools _tools ) {
+    public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext ) {
         this.verbose = _verbose;
-
-        this.tools = _tools;
 
         if ( _memoryAndContext == null )
             this.memoryAndContext = new MemoryAndContext( _verbose, _showStats, this );
@@ -124,14 +120,6 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      */
     public MemoryAndContext getMemoryAndContext() {
         return this.memoryAndContext;
-    }
-
-    /**
-     * The constructor to this class (based on the actual subclass implementation of CmdInvoker) should also pass in the APPROPRIATE instance of subclass of org.ASUX.yaml.Tools class - either org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
-     * @return reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
-     */
-    public Tools getTools() {
-        return this.tools;
     }
 
     /**
