@@ -45,10 +45,11 @@ import java.io.ObjectInputStream;
 
 /**
  *  <p>This is part of org.ASUX.yaml GitHub.com project and the <a href="https://github.com/org-asux/org-ASUX.github.io/wiki">org.ASUX.cmdline</a> GitHub.com projects.</p>
- *  <p>This class is a bunch of tools to help make it easy to work with the Configuration and Propertyfiles - while making it very human-friendly w.r.t .comments etc...</p>
+ *  <p>This class is used by org.ASUX.YAML.NodeImpl.BatchYamlProcessor and by org.ASUX.YAML.CollectionImpl.BatchYamlProcessor</p>
+ * <p>This 
  *
  * @see org.ASUX.yaml.Cmd
- * @see org.ASUX.yaml.BatchYamlProcessor
+ * @see org.ASUX.common.ConfigFileScanner
  */
 public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
 
@@ -64,9 +65,10 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
 	public static final String REGEXP_FILENAME = "[a-zA-Z$/\\.]" + REGEXP_NAMESUFFIX;
 	public static final String REGEXP_OBJECT_REFERENCE = "[@!]" + REGEXP_FILENAME;
 
+    private static final String REGEXP_ECHO = "^\\s*echo\\s+(\\S.*\\S)\\s*$";
     //--------------------------------------------------------
 
-    enum BatchCmdType { Cmd_MakeNewRoot, Cmd_Batch, Cmd_Foreach, Cmd_End, Cmd_Properties, Cmd_SetProperty, Cmd_SaveTo, Cmd_UseAsInput, Cmd_Print, Cmd_YAMLLibrary, Cmd_Verbose, Cmd_Sleep, Cmd_Any };
+    public enum BatchCmdType { Cmd_MakeNewRoot, Cmd_Batch, Cmd_Foreach, Cmd_End, Cmd_Properties, Cmd_SetProperty, Cmd_SaveTo, Cmd_UseAsInput, Cmd_Print, Cmd_YAMLLibrary, Cmd_Verbose, Cmd_Sleep, Cmd_Any };
     private BatchCmdType whichCmd = BatchCmdType.Cmd_Any;
 
     private boolean bLine2bEchoed = false;
@@ -130,6 +132,36 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
         return this.whichCmd;
     }
 
+    private String getLineNoEchoPrefix( String _line ) {
+        if ( _line == null )
+            _line = this.currentLineOrNull();
+        Pattern echoPattern = Pattern.compile( REGEXP_ECHO );
+        Matcher echoMatcher    = echoPattern.matcher( _line );
+        if (echoMatcher.find()) {
+            return echoMatcher.group(1); // line.substring( echoMatcher.start(), echoMatcher.end() );
+        } else {
+            return _line;
+        }
+    }
+
+
+    //===========================================================================
+    /** This overrides the method from parent class org.ASUX.common.ConfigFileScanner.java
+     *  This override is reqired to "parse out" prefixes like 'ecbo'
+     *  @return the next string in the list of lines (else an exception is thrown)
+     *  @throws Exception in case this class is messed up or hasNextLine() is false or has Not been invoked appropriately
+     */
+    public String currentLine() throws Exception
+    {
+        // !!!!!!!!!!!!!!!!!!!!!! OVERRIDE Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
+        if ( this.isLine2bEchoed() ) {
+            // return this.nextLine(); // this will Not be null.. just because of the call to hasNextLine() above.
+            return this.getLineNoEchoPrefix( super.currentLine() );
+        } else {
+            return super.currentLine();
+        }
+    }
+
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
@@ -150,7 +182,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
         try {
             // ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // This block of code below (echoPattern, echoMatcher, this.bLine2bEchoed) MUST be the very BEGINNNG of this function
-            Pattern echoPattern = Pattern.compile( "^\\s*echo\\s+(\\S.*\\S)\\s*$" );
+            Pattern echoPattern = Pattern.compile( REGEXP_ECHO );
             Matcher echoMatcher    = echoPattern.matcher( line );
             if (echoMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the command to be ECHO-ed '"+ echoMatcher.group(1) +"' starting at index "+  echoMatcher.start() +" and ending at index "+ echoMatcher.end() );    
@@ -409,7 +441,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
             return null; // Since.. It is one of the above commands like: properties, saveAs, foreach, end, useAsInput, makeNewRoot, .. ..
 
         try {
-            final java.util.Scanner scanner = new java.util.Scanner( this.currentLine() );
+            final java.util.Scanner scanner = new java.util.Scanner( this.getLineNoEchoPrefix(null) );
             scanner.useDelimiter("\\s+");
 
             if (scanner.hasNext()) { // default whitespace delimiter used by a scanner
