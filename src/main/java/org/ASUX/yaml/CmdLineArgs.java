@@ -58,6 +58,10 @@ public class CmdLineArgs {
     private static final String YAMLLIB = "yamllibrary";
     // private static final String PROPERTIES = "properties";
 
+    public static final String NOQUOTE = "no-quote";
+    public static final String SINGLEQUOTE = "single-quote";
+    public static final String DOUBLEQUOTE = "double-quote";
+
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // These are for internal use - to help process user's commands
     protected org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
@@ -78,7 +82,7 @@ public class CmdLineArgs {
     public String outputFilePath = "/tmp/undefined";
 
     public YAML_Libraries YAMLLibrary = YAML_Libraries.NodeImpl_Library; // some default value for now
-    // public com.esotericsoftware.yamlbeans.YamlConfig.Quote quoteType = com.esotericsoftware.yamlbeans.YamlConfig.Quote.SINGLE;
+    public Enums.ScalarStyle quoteType = Enums.ScalarStyle.FOLDED;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
@@ -106,15 +110,15 @@ public class CmdLineArgs {
         opt.setRequired(false);
         this.options.addOption(opt);
 
-        opt= new Option("v", "showStats", false, "Show - at end output - a summary of how many matches happened, or entries were affected");
+        opt= new Option("vs", "showStats", false, "Show - at end output - a summary of how many matches happened, or entries were affected");
         opt.setRequired(false);
         this.options.addOption(opt);
 
         //----------------------------------
         OptionGroup grp2 = new OptionGroup();
-        Option noQuoteOpt = new Option("nq", "no-quote", false, "do Not use Quotes in YAML output");
-        Option singleQuoteOpt = new Option("sq", "single-quote", false, "use ONLY Single-quote when generating YAML output");
-        Option doubleQuoteOpt = new Option("dq", "double-quote", false, "se ONLY Double-quote when generating YAML output");
+        Option noQuoteOpt = new Option("nq", NOQUOTE, false, "do Not use Quotes in YAML output");
+        Option singleQuoteOpt = new Option("sq", SINGLEQUOTE, false, "use ONLY Single-quote when generating YAML output");
+        Option doubleQuoteOpt = new Option("dq", DOUBLEQUOTE, false, "se ONLY Double-quote when generating YAML output");
         grp2.addOption(noQuoteOpt);
         grp2.addOption(singleQuoteOpt);
         grp2.addOption(doubleQuoteOpt);
@@ -203,11 +207,11 @@ public class CmdLineArgs {
                 throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
             this.moreParsing( _args );
 
-            // this.quoteType = com.esotericsoftware.yamlbeans.YamlConfig.Quote.SINGLE; // default behavior
-            // if ( this.apacheCmd.hasOption( noQuoteOpt.getLongOpt()) ) this.quoteType = com.esotericsoftware.yamlbeans.YamlConfig.Quote.NONE;
-            // if ( this.apacheCmd.hasOption( singleQuoteOpt.getLongOpt()) ) this.quoteType = com.esotericsoftware.yamlbeans.YamlConfig.Quote.SINGLE;
-            // if ( this.apacheCmd.hasOption( doubleQuoteOpt.getLongOpt()) ) this.quoteType = com.esotericsoftware.yamlbeans.YamlConfig.Quote.DOUBLE;
-            // if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
+            this.quoteType = Enums.ScalarStyle.FOLDED; // default behavior
+            if ( this.apacheCmd.hasOption( NOQUOTE ) ) this.quoteType = Enums.ScalarStyle.PLAIN;
+            if ( this.apacheCmd.hasOption( SINGLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.SINGLE_QUOTED;
+            if ( this.apacheCmd.hasOption( DOUBLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.DOUBLE_QUOTED;
+            if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
 
             // System.err.println( CLASSNAME +": "+this.toString());
 
@@ -239,6 +243,7 @@ public class CmdLineArgs {
         +"verbose="+verbose+" showStats="+showStats+" YAML-Library="+YAMLLibrary
         +" yamlRegExpStr="+yamlRegExpStr+" yamlPatternDelimiter="+yamlPatternDelimiter
         +" inpfile="+inputFilePath+" outputfile="+outputFilePath
+        +" this.quoteType=["+this.quoteType+"] "
         ;
         // yamlRegExpStr="+yamlRegExpStr+" 
     }
