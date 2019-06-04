@@ -99,7 +99,6 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      *  @param _verbose Whether you want deluge of debug-output onto System.out.
      *  @param _showStats Whether you want a final summary onto console / System.out
      *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.CollectionImpl.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
-     *  @param _tools reference to an instance of org.ASUX.yaml.Tools class or it's subclasses org.ASUX.yaml.CollectionsImpl.Tools or org.ASUX.YAML.NodeImpl.Tools
      */
     public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext ) {
         this.verbose = _verbose;
@@ -146,12 +145,28 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      */
     // public abstract GenericYAMLWriter getYamlWriter();
 
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+    /**
+     *  <p>Example: For SnakeYAML-library based subclass of this, this should return DumperOptions.class</p>
+     *  <p>This is to be used primarily within org.ASUX.yaml.BatchCmdProcessor#onAnyCmd().</p>
+     *  @return name of class of the object that subclasses of {@link CmdInvoker} use, to configure YAML-Output (example: SnakeYAML uses DumperOptions)
+     */
+    public abstract Class<?> getLibraryOptionsClass();
+
+    /**
+     *  <p>Example: For SnakeYAML-library based subclass of this, this should return the reference to the instance of the class DumperOption</p>
+     *  <p>This is to be used primarily within org.ASUX.yaml.BatchCmdProcessor#onAnyCmd().</p>
+     * @return instance/object that subclasses of {@link CmdInvoker} use, to configure YAML-Output (example: SnakeYAML uses DumperOptions objects)
+     */
+    public abstract Object getLibraryOptionsObject();
+
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
     /**
      *  This function is meant to be used by Cmd.main() and by BatchProcessor.java.  Read the code *FIRST*, to see if you can use this function too.
-     *  @param _cmdLineArgs yes, everything passed as commandline arguments to the Java program / org.ASUX.yaml.CmdLineArgs
+     *  @param _cmdLineArgs Everything passed as commandline arguments to the Java program {@link org.ASUX.yaml.CmdLineArgsCommon}
      *  @param _inputData _the YAML inputData that is the input to pretty much all commands (based on the library it's either a org.yaml.snakeyaml.nodes.Node or a java.utils.LinkedHashMap&lt;String, Object&gt; object).
      *  @return either a String, java.utils.LinkedHashMap&lt;String, Object&gt;
      *  @throws YAMLPath.YAMLPathException if Pattern for YAML-Path provided is either semantically empty or is NOT java.util.Pattern compatible.
@@ -159,7 +174,7 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      *  @throws IOException if the filenames within _cmdLineArgs give any sort of read/write troubles
      *  @throws Exception by ReplaceYamlCmd method and this nethod (in case of unknown command)
      */
-    public abstract Object processCommand ( CmdLineArgs _cmdLineArgs, final Object _inputData )
+    public abstract Object processCommand ( org.ASUX.yaml.CmdLineArgsCommon _cmdLineArgs, final Object _inputData )
                 throws FileNotFoundException, IOException, Exception,
                 YAMLPath.YAMLPathException;
 
