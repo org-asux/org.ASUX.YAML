@@ -76,7 +76,42 @@ public class CmdLineArgsBasic {
 
     public CmdEnum cmdType = CmdEnum.UNKNOWN;
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    /**
+     * the command line arguments as-is
+     * @return instead of String[], you get an ArrayList (which is guaranteed to be NOT-Null)
+     */
+    final ArrayList<String> getArgs() {
+        @SuppressWarnings("unchecked")
+        final ArrayList<String> ret = (ArrayList<String>) this.args.clone();
+        return ret;
+    }
+
+    //------------------------------------
+    /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
+     */
+    public String toString() {
+        // this.args.forEach(s -> System.out.println(s+"\t") );
+        return this.args.toString();
+        // return "verbose="+verbose;
+    }
+
+    //------------------------------------
+    /**
+     * This object reference is either to a CmdLineArgs class (for READ, LIST and DELETE commands), or subclasses of CmdLineArgs (for INSERT, REPLACE, TABLE, MACRO, BATCH commands)
+     * @return either an instance of CmdLineArgs or one of it's subclasses (depends on this.cmdType {@link #cmdType})
+     */
+    public CmdLineArgs getSpecificCmd() {
+        return this.cmdLineArgs;
+    }
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
     /** Constructor.
      *  @param args command line argument array - as received as-is from main().
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
@@ -104,39 +139,13 @@ public class CmdLineArgsBasic {
         //----------------------------------
         OptionGroup grp = new OptionGroup();
         Option readCmdOpt = new Option( READCMD[0], READCMD[1], true, READCMD[2] );
-            readCmdOpt.setOptionalArg(false);
-            // readCmdOpt.setArgs(1);
-            // readCmdOpt.setArgName("YAMLPattern");
         Option listCmdOpt = new Option( LISTCMD[0], LISTCMD[1], true, LISTCMD[2] );
-            listCmdOpt.setOptionalArg(false);
-            // listCmdOpt.setArgs(1);
-            // listCmdOpt.setArgName("YAMLPattern");
         Option insCmdOpt = new Option( INSERTCMD[0], INSERTCMD[1], true, INSERTCMD[2] );
-            insCmdOpt.setOptionalArg(false);
-            // insCmdOpt.setArgs(2);
-            // insCmdOpt.setValueSeparator(' ');
-            // insCmdOpt.setArgName("YAMLPattern> <newValue"); // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
         Option replCmdOpt = new Option( REPLACECMD[0], REPLACECMD[1], true, REPLACECMD[2] );
-            replCmdOpt.setOptionalArg(false);
-            // replCmdOpt.setArgs(2);
-            // replCmdOpt.setValueSeparator(' ');
-            // replCmdOpt.setArgName("YAMLPattern> <newValue"); // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
         Option delCmdOpt = new Option( DELETECMD[0], DELETECMD[1], true, DELETECMD[2] );
-            delCmdOpt.setOptionalArg(false);
-            // delCmdOpt.setArgs(1);
-            // delCmdOpt.setArgName("YAMLPattern");
         Option tableCmdOpt = new Option( TABLECMD[0], TABLECMD[1], false, TABLECMD[2] );
-            tableCmdOpt.setOptionalArg(false);
-            // tableCmdOpt.setArgs(2);
-            // tableCmdOpt.setArgName("YAMLPattern> <column,column");
         Option macroCmdOpt = new Option( MACROCMD[0], MACROCMD[1], true, MACROCMD[2] );
-            macroCmdOpt.setOptionalArg(false);
-            // macroCmdOpt.setArgs(1);
-            // macroCmdOpt.setArgName("propertiesFile");
         Option batchCmdOpt = new Option( BATCHCMD[0], BATCHCMD[1], true, BATCHCMD[2] );
-            batchCmdOpt.setOptionalArg(false);
-            // batchCmdOpt.setArgs(1);
-            // batchCmdOpt.setArgName("batchFile");
         grp.addOption(readCmdOpt);
         grp.addOption(listCmdOpt);
         grp.addOption(tableCmdOpt);
@@ -176,39 +185,39 @@ public class CmdLineArgsBasic {
             if ( cmd.hasOption(READCMD[1]) ) {
                 this.cmdType = CmdEnum.READ;
                 // this.yamlRegExpStr = cmd.getOptionValue(READCMD);
-                cla = new CmdLineArgs( this.cmdType, READCMD[0], READCMD[1], READCMD[2], 1, "YAMLPattern" );
+                cla = new CmdLineArgs( args, this.cmdType, READCMD[0], READCMD[1], READCMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(LISTCMD[1]) ) {
                 this.cmdType = CmdEnum.LIST;
-                cla = new CmdLineArgs( this.cmdType, LISTCMD[0], LISTCMD[1], LISTCMD[2], 1, "YAMLPattern" );
+                cla = new CmdLineArgs( args, this.cmdType, LISTCMD[0], LISTCMD[1], LISTCMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(INSERTCMD[1]) ) {
                 this.cmdType = CmdEnum.INSERT;
-                final CmdLineArgsInsertCmd insertCmdLineArgs = new CmdLineArgsInsertCmd( this.cmdType, INSERTCMD[0], INSERTCMD[1], INSERTCMD[2], 2, "YAMLPattern> <newValue" );
+                final CmdLineArgsInsertCmd insertCmdLineArgs = new CmdLineArgsInsertCmd( args, this.cmdType, INSERTCMD[0], INSERTCMD[1], INSERTCMD[2], 2, "YAMLPattern> <newValue" );
                 cla = insertCmdLineArgs;
             }
             if ( cmd.hasOption(DELETECMD[1]) ) {
                 this.cmdType = CmdEnum.DELETE;
-                cla = new CmdLineArgs( this.cmdType, DELETECMD[0], DELETECMD[1], DELETECMD[2], 1, "YAMLPattern" );
+                cla = new CmdLineArgs( args, this.cmdType, DELETECMD[0], DELETECMD[1], DELETECMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(REPLACECMD[1]) ) {
                 this.cmdType = CmdEnum.REPLACE;
-                final CmdLineArgsReplaceCmd replaceCmdLineArgs = new CmdLineArgsReplaceCmd( this.cmdType, REPLACECMD[0], REPLACECMD[1], REPLACECMD[2], 2, "YAMLPattern> <newValue" );
+                final CmdLineArgsReplaceCmd replaceCmdLineArgs = new CmdLineArgsReplaceCmd( args, this.cmdType, REPLACECMD[0], REPLACECMD[1], REPLACECMD[2], 2, "YAMLPattern> <newValue" );
                 cla = replaceCmdLineArgs;
             }
             if ( cmd.hasOption(TABLECMD[1]) ) {
                 this.cmdType = CmdEnum.TABLE;
-                final CmdLineArgsTableCmd tableCmdLineArgs = new CmdLineArgsTableCmd( this.cmdType, TABLECMD[0], TABLECMD[1], TABLECMD[2], 2, "YAMLPattern> <column,column" );
+                final CmdLineArgsTableCmd tableCmdLineArgs = new CmdLineArgsTableCmd( args, this.cmdType, TABLECMD[0], TABLECMD[1], TABLECMD[2], 2, "YAMLPattern> <column,column" );
                 cla = tableCmdLineArgs;
             }
             if ( cmd.hasOption(MACROCMD[1]) ) {
                 this.cmdType = CmdEnum.MACRO;
-                final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( this.cmdType, MACROCMD[0], MACROCMD[1], MACROCMD[2], 1, "propertiesFile" );
+                final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( args, this.cmdType, MACROCMD[0], MACROCMD[1], MACROCMD[2], 1, "propertiesFile" );
                 cla = macroCmdLineArgs;
             }
             if ( cmd.hasOption(BATCHCMD[1]) ) {
                 this.cmdType = CmdEnum.BATCH;
-                final CmdLineArgsBatchCmd batchCmdLineArgs = new CmdLineArgsBatchCmd( this.cmdType, BATCHCMD[0], BATCHCMD[1], BATCHCMD[2], 1, "batchFile" );
+                final CmdLineArgsBatchCmd batchCmdLineArgs = new CmdLineArgsBatchCmd( args, this.cmdType, BATCHCMD[0], BATCHCMD[1], BATCHCMD[2], 1, "batchFile" );
                 cla = batchCmdLineArgs;
             }
 
@@ -218,30 +227,15 @@ public class CmdLineArgsBasic {
             this.cmdLineArgs.parse( args );
 
         } catch (ParseException e) {
-            e.printStackTrace(System.err);
-            formatter.printHelp("java <jarL> "+ CLASSNAME, options);
+            e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
+            formatter.printHelp( "\njava <jarL> "+CLASSNAME, options );
+            System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ options );
             throw e;
         }
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
-     */
-    public String toString() {
-        // this.args.forEach(s -> System.out.println(s+"\t") );
-        return this.args.toString();
-        // return "verbose="+verbose;
-    }
 
-    //------------------------------------
-    /**
-     * This object reference is either to a CmdLineArgs class (for READ, LIST and DELETE commands), or subclasses (for INSERT, REPLACE, TABLE, MACRO, BATCH commands)
-     */
-    public CmdLineArgs getSpecificCmd() {
-        return this.cmdLineArgs;
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
 //    public static void main(String[] args) {
 //        new CmdLineArgsBasic(args);

@@ -55,6 +55,7 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** Constructor.
+     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -63,12 +64,12 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsReplaceCmd( final CmdEnum _cmdType,
+    public CmdLineArgsReplaceCmd( final String[] args, final CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
     {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
+        super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
     } // method
 
 
@@ -80,7 +81,7 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
     protected void moreParsing( String[] _args ) throws Exception {
-        final String[] replaceArgs = this.apacheCmd.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
+        final String[] replaceArgs = this.apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
         // because we set .setArgs(2) above.. you can get the values for:- replaceArgs[0] and replaceArgs[1].
         this.yamlRegExpStr = replaceArgs[0]; // 1st of the 2 arguments for replace cmd.
         this.replaceFilePath = replaceArgs[1];
@@ -90,17 +91,17 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
     public String toString() {
-        return super.toString() +" replaceFile="+replaceFilePath;
+        return super.toString() +" replaceFile="+replaceFilePath +" & newContent(not shown).";
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( args, CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
             cla.parse(args);
         } catch( Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); // main() for unit-testing
             System.exit(1);
         }
     }

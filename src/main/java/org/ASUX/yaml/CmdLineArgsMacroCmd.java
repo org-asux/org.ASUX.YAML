@@ -55,6 +55,7 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** Constructor.
+     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -63,12 +64,12 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsMacroCmd( final CmdEnum _cmdType,
+    public CmdLineArgsMacroCmd( final String[] args, final CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
     {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
+        super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
     } // method
 
 
@@ -80,7 +81,7 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
     protected void moreParsing( String[] _args ) throws Exception {
-        this.propertiesFilePath = this.apacheCmd.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROCMD[1] );
+        this.propertiesFilePath = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROCMD[1] );
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -94,10 +95,10 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsMacroCmd cla = new CmdLineArgsMacroCmd( CmdEnum.MACRO, CmdLineArgsBasic.MACROCMD[0], CmdLineArgsBasic.MACROCMD[1], CmdLineArgsBasic.MACROCMD[2], 1, "propertiesFile" );
+            final CmdLineArgsMacroCmd cla = new CmdLineArgsMacroCmd( args, CmdEnum.MACRO, CmdLineArgsBasic.MACROCMD[0], CmdLineArgsBasic.MACROCMD[1], CmdLineArgsBasic.MACROCMD[2], 1, "propertiesFile" );
             cla.parse(args);
         } catch( Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); // main() for unit-testing
             System.exit(1);
         }
     }

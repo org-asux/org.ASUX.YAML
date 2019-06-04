@@ -55,6 +55,7 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** Constructor.
+     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -63,12 +64,12 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsInsertCmd( final CmdEnum _cmdType,
+    public CmdLineArgsInsertCmd( final String[] args, final CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
     {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
+        super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
     } // method
 
 
@@ -80,7 +81,7 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
     protected void moreParsing( String[] _args ) throws Exception {
-        final String[] insertArgs = this.apacheCmd.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.INSERTCMD[1] );
+        final String[] insertArgs = this.apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.INSERTCMD[1] );
         // because we set .setArgs(2) above.. you can get the values for:- insertArgs[0] and insertArgs[1].
         this.yamlRegExpStr = insertArgs[0]; // 1st of the 2 arguments for INSERT cmd.
         this.insertFilePath = insertArgs[1];
@@ -90,17 +91,17 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
     public String toString() {
-        return super.toString() +" insertFile="+insertFilePath;
+        return super.toString() +" insertFile="+insertFilePath +" & newContent(not shown).";
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsInsertCmd cla = new CmdLineArgsInsertCmd( CmdEnum.INSERT, CmdLineArgsBasic.INSERTCMD[0], CmdLineArgsBasic.INSERTCMD[1], CmdLineArgsBasic.INSERTCMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            final CmdLineArgsInsertCmd cla = new CmdLineArgsInsertCmd( args, CmdEnum.INSERT, CmdLineArgsBasic.INSERTCMD[0], CmdLineArgsBasic.INSERTCMD[1], CmdLineArgsBasic.INSERTCMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
             cla.parse(args);
         } catch( Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); // main() for unit-testing
             System.exit(1);
         }
     }
