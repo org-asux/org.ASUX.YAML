@@ -48,7 +48,8 @@ public final class Enums
         SINGLE_QUOTED('\''),
         LITERAL( '|'),
         FOLDED('>'),
-        PLAIN(null);
+        PLAIN(null),
+        UNDEFINED('?');
 
         public static final String CLASSNAME = Enums.class.getName();
 
@@ -93,7 +94,7 @@ public final class Enums
                     return typeitem;
                 }
             }
-            throw new Exception ( CLASSNAME + ": fromString("+ type +"): should be one of the values: "+ list("\t") );
+            throw new Exception ( CLASSNAME + ": fromString("+ type +"): Value should be one of the values: "+ list("\t") );
             // return ScalarStyle.SNAKEYAML_Library; // Default.. or you can throw exception
         }
 
