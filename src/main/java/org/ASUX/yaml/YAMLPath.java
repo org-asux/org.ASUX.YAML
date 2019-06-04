@@ -65,7 +65,7 @@ import java.io.IOException;
     for loop ..
         if ( ! _yamlPath.hasNext() ) return false; // YAML path has ended
         final String yamlPathElemStr = _yamlPath.get(); // current path-element (a substring of full this.yamlPathStr)
-        System.out.println(CLASSNAME + ": @# " + _yamlPath.index() +"\t"+ _yamlPath.getPrefix() +"\t"+ _yamlPath.get() +"\t"+ _yamlPath.getSuffix() + "\t  matched '"
+        System.out.println( " @# " + _yamlPath.index() +"\t"+ _yamlPath.getPrefix() +"\t"+ _yamlPath.get() +"\t"+ _yamlPath.getSuffix() + "\t  matched '"
         .. ..
         final YAMLPath cloneOfYAMLPath = YAMLPath.deepClone(_yamlPath); // to keep _yamlPath intact as we recurse in and out of sub-yaml-elements
 </pre>
@@ -84,7 +84,7 @@ public class YAMLPath implements Serializable {
     // public static final String ROOTLEVEL = "<RootLevel:("+ REGEXP_NAME +")>";
     public static final String ROOTLEVEL = "/";
 
-	public static final String CLASSNAME = "org.ASUX.yaml.YAMLPath";
+	public static final String CLASSNAME = YAMLPath.class.getName();
 
     //------------------------------------------------------------------------------
     /** <p>Whether you want deluge of debug-output onto System.out.</p><p>Set this via the constructor.</p>
@@ -137,10 +137,12 @@ public class YAMLPath implements Serializable {
      *  @throws org.ASUX.yaml.YAMLPath.YAMLPathException if Pattern provided for YAML-Path is either semantically empty or is NOT java.util.Pattern compatible.. .. or, invalid delimiter, etc..
      */
     public YAMLPath( final boolean _verbose, String _yp, final String _delim ) throws YAMLPathException {
+        final String HDR = CLASSNAME +" Constructor: ";
+
         this.verbose = _verbose;
         _yp = _yp.trim(); // strip leading and trailing whitesapce (Java11 user strip(), Java<11, use trim()
         if ( _yp.length() <= 0 )
-            throw new YAMLPathException( CLASSNAME +" Constructor: semantically EMPTY Pattern (java.util.Pattern compatible) provided ["+ _yp +"]" ); // invalid YAML Path.  Let "this.isValid" stay as false
+            throw new YAMLPathException( HDR +"semantically EMPTY Pattern (java.util.Pattern compatible) provided ["+ _yp +"]" ); // invalid YAML Path.  Let "this.isValid" stay as false
         this.delimiter = _delim;
         this.yamlPathStr = _yp; //save it
         this.prntDelimiter = DEFAULTPRINTDELIMITER; // _delim.replaceAll("\\\\", ""); // save it in human-readable form (to print out paths -- and for NO OTHER purpose)
@@ -150,24 +152,24 @@ public class YAMLPath implements Serializable {
         try {
             Pattern p = Pattern.compile(_delim);
         }catch(PatternSyntaxException e){
-            e.printStackTrace(System.err);
-            System.err.println( CLASSNAME +": Constructor: Invalid delimiter-pattern '"+ _delim +"' provided to constructor of "+CLASSNAME);
+            if ( _verbose ) e.printStackTrace(System.err);
+            System.err.println( HDR +" Invalid delimiter-pattern '"+ _delim +"' provided to constructor " );
             return; // invalid YAML Path.  Let "this.isValid" stay as false
         }
 
-        if (this.verbose) System.out.println(CLASSNAME + ": Sanity check completed for yp=["+ _yp +"]" );
+        if (this.verbose) System.out.println( HDR +" Sanity check completed for yp=["+ _yp +"]" );
         //        boolean b = Pattern.matches("a*b", "aaaaab");
 
-        if (this.verbose) System.out.println(CLASSNAME + ": about to split '"+_yp+"' with delimiter '"+_delim+"'");
+        if (this.verbose) System.out.println( HDR +" about to split '"+_yp+"' with delimiter '"+_delim+"'");
         this.yamlElemArr = _yp.split(_delim);
 
-        if (this.verbose) System.out.println(CLASSNAME + ": this.yamlElemArr has length '"+this.yamlElemArr.length+"'");
-        if (this.verbose) System.out.println(CLASSNAME + ": this.yamlElemArr[0] = '"+this.yamlElemArr[0]+"'");
+        if (this.verbose) System.out.println( HDR +" this.yamlElemArr has length '"+this.yamlElemArr.length+"'");
+        if (this.verbose) System.out.println( HDR +" this.yamlElemArr[0] = '"+this.yamlElemArr[0]+"'");
 
         for(int ix=0; ix < this.yamlElemArr.length; ix++ ) {
             String elem = this.yamlElemArr[ix];
             try {
-                if (this.verbose) System.out.println(CLASSNAME+": checking on .. YAML-element '"+ elem +"'.");
+                if (this.verbose) System.out.println( HDR +" checking on .. YAML-element '"+ elem +"'.");
                 if (elem.equals("**") ) {
                     // nothing to validate, as its NOT a valid Regular-expression.  Let "**" through!
                 }else {
@@ -175,12 +177,12 @@ public class YAMLPath implements Serializable {
                         elem = MATCHANYSINGLEPATHELEMENT; // convert human-friendly * into formal-regexp .*
                         this.yamlElemArr[ix] = elem;
                     }
-                    if (this.verbose) System.out.println(CLASSNAME+": YAML-element='"+ this.yamlElemArr[ix] +"'.");
+                    if (this.verbose) System.out.println( HDR +" YAML-element='"+ this.yamlElemArr[ix] +"'.");
                     final Pattern p = Pattern.compile(elem); // not using this, but if 'elem' is invalid, exception thrown
                 }
             }catch(PatternSyntaxException e){
-                e.printStackTrace(System.err);
-                throw new YAMLPathException( CLASSNAME+": Constructor: Invalid YAML-element '"+ elem +"' provided." );
+                if ( this.verbose ) e.printStackTrace(System.err);
+                throw new YAMLPathException(  HDR +" Invalid YAML-Path Regular-Expression '"+ elem +"' @ position# "+ ix +".\nException-message: "+ e );
             }
         } // for
 
@@ -211,7 +213,8 @@ public class YAMLPath implements Serializable {
      *  @return true means {@link get} will return a valid string, GUARANTEED to NOT Throw any runtime exception :-)
      */
     public boolean hasNext() {
-        // System.out.println(CLASSNAME + ":hasNext(): Starting.");
+        // final String HDR = CLASSNAME +": hasNext():";
+        // System.out.println( HDR +"hasNext(): Starting.");
         if ( ! this.isValid ) return false;
         if ( this.indexPtr < this.yamlElemArr.length )
             return true;
@@ -342,7 +345,7 @@ public class YAMLPath implements Serializable {
         if ( this.isValid )
             return this.getPrefix() +"\t@"+ this.index() +":"+ this.get() +"\t"+ this.getSuffix();
         else
-            return "Invalid object of "+CLASSNAME;
+            return "Invalid object (invalid-status) of "+CLASSNAME;
     }
 
     //=======================================================================
@@ -418,44 +421,11 @@ public class YAMLPath implements Serializable {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    // /**
-    //  * If the YAML-Path-pattern is exactly equal to {@link #ROOTLEVEL} then it means the YAML-command (most likely INSERT) wants to work at the very top-level YAML-element.
-    //  * @return Either null or the "new Root-level Key-name", whether the user entered the value "<RootLevel:NewRootKeyName>" (exactly as defined by {@link #ROOTLEVEL}).
-    //  */
-    // public String atRootLevel() {
-        // // return ROOTLEVEL.matches(this.yamlPathStr);
-        // try {
-        //     Pattern rootLevelPattern = Pattern.compile( YAMLPath.ROOTLEVEL );
-        //     Matcher rootLevelMatcher    = rootLevelPattern.matcher( this.yamlPathStr );
-        //     if (rootLevelMatcher.find()) {
-        //         if ( this.verbose ) System.out.println( CLASSNAME +": atEndOfInput(): I found the text "+ rootLevelMatcher.group() +" starting at index "+  rootLevelMatcher.start() +" and ending at index "+ rootLevelMatcher.end() );    
-        //         final String rootLevelKey = rootLevelMatcher.group(1); // line.substring( rootLevelMatcher.start(), rootLevelMatcher.end() );
-        //         if ( this.verbose ) System.out.println( CLASSNAME + ": atEndOfInput(): \t rootLevelKey=[" + rootLevelKey +"]" );
-        //         // rootLevelKey = MacroYamlProcessor.evaluateMacros( cmd_AsIs, ___.AllProps ).trim();
-        //         // ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        //         // Above evaluateMacros() invocation cannot be (and IMPORTANTLY, SHOULD NOT) done.. 
-        //         // .. as we do NOT (and IMPORTANTLY, SHOULD NOT) have access to 'AllProps' like BatchYamlProcessor.java or Cmd.java do!
-        //         // Instead, make BatchYamlProcess pre-process the parameters passed to this InsertYamlEntry.java
-        //         return rootLevelKey;
-        //     } else
-        //         return null;
-
-        // } catch (PatternSyntaxException e) {
-        //     e.printStackTrace(System.err);
-        //     System.err.println( CLASSNAME + ": atRootLevel("+ this.yamlPathStr +"): Unexpected Internal ERROR 1 while parsing pattern "+ YAMLPath.ROOTLEVEL );
-        //     System.exit(91); // This is a serious failure. Shouldn't be happening.
-        // }
-        // return null;
-    // }
-
-    //==============================================================================
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //==============================================================================
-
 //    public static void main(String[] args) {
-//        // System.out.println(CLASSNAME + ": started with '"+args[0]+"'");
+        // final String HDR = CLASSNAME +"main("+ args +"): ";
+//        // System.out.println(HDR +" started with '"+args[0]+"'");
 //        YAMLPath yp = new YAMLPath(args[0]);
-//        // System.out.println(CLASSNAME + ": parsing complete");
+//        // System.out.println(HDR +" parsing complete");
 //        while (yp.hasNext()) {
 //            System.out.println("@# " + yp.index() +"\t"+ yp.getPrefix() +"\t"+ yp.get() +"\t"+ yp.getSuffix() );
 //            yp.next();
