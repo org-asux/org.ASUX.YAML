@@ -151,6 +151,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
      *  @return the next string in the list of lines (else an exception is thrown)
      *  @throws Exception in case this class is messed up or hasNextLine() is false or has Not been invoked appropriately
      */
+    @Override
     public String currentLine() throws Exception
     {
         // !!!!!!!!!!!!!!!!!!!!!! OVERRIDE Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
@@ -309,7 +310,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
             return;
 
         } catch (PatternSyntaxException e) {
-			e.printStackTrace(System.err);
+			e.printStackTrace(System.err); // too serious an internal-error.  Immediate bug-fix required.  The application/Program will exit .. in 2nd line below.
 			System.err.println(CLASSNAME + ": isPropertyLine(): Unexpected Internal ERROR, while checking for patterns for line= [" + line +"]" );
 			System.exit(91); // This is a serious failure. Shouldn't be happening.
         }
@@ -453,11 +454,11 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
 
             scanner.close();
             return null;
+		} catch (Exception e) {
             // scanner.hasNext() only throws a RUNTIMEEXCEPTION: IllegalStateException - if this scanner is closed
             // scanner.next() only throws a RUNTIMEEXCEPTION: NoSuchElementException - if no more tokens are available
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			System.err.println(CLASSNAME + ": getCommand(): Unexpected Internal ERROR, while checking for patterns for "+ this.getState() );
+			if ( this.verbose ) e.printStackTrace(System.err);
+			System.err.println(CLASSNAME + ": getCommand(): Unexpected Internal ERROR, while checking for patterns for "+ this.getState() +".  Re-run this, this time using --verbose command-line option.\n Exception message: "+ e );
             return null;
         }
     }
@@ -488,10 +489,10 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
         //     return newobj;
 
         // } catch (java.io.IOException e) {
-		// 	e.printStackTrace(System.err);
+		// 	e.printStackTrace(System.err); // too serious an error.  Typically, failure to clone an object that is NOT 100% java.io.Serializable
         //     return null;
         // } catch (ClassNotFoundException e) {
-		// 	e.printStackTrace(System.err);
+		// 	e.printStackTrace(System.err); // too serious an error.  Typically, failure to clone an object that is NOT In classpath (wierd things can happen due to software bugs)
         //     return null;
         // }
     }
@@ -528,7 +529,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
                 o.getCommand();
             }
 		} catch (Exception e) {
-			e.printStackTrace(System.err);
+			e.printStackTrace(System.err); // main() for unit testing
 			System.err.println( CLASSNAME + ": main(): Unexpected Internal ERROR, while processing " + ((args==null || args.length<=0)?"[No CmdLine Args":args[0]) +"]" );
 			System.exit(91); // This is a serious failure. Shouldn't be happening.
         }
