@@ -36,8 +36,16 @@ import static org.junit.Assert.*;
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 /**
- * This enum class is a bit extensive, only because the ENNUMERATED VALUEs are strings.
- * For variations - see https://stackoverflow.com/questions/3978654/best-way-to-create-enum-of-strings
+ *  <p>This enum class is a bit extensive, only because the ENNUMERATED VALUEs are strings.</p>
+ *  <p>For variations - see https://stackoverflow.com/questions/3978654/best-way-to-create-enum-of-strings</p>
+ *  <p>Valid values are: </p>
+ *  <ul>
+    <li>ESOTERICSOFTWARE_Library ("com.esotericsoftware.yamlbeans")</li>
+    <li>SNAKEYAML_Library ("org.yaml.snakeyaml.Yaml")</li>
+    <li>CollectionsImpl_Library ("CollectionsImpl")</li>
+    <li>NodeImpl_Library ("NodeImpl")</li>
+    <li>ASUXYAML_Library ("org.ASUX.yaml")</li>
+ *  </ul>
  */
 public enum YAML_Libraries
 {
@@ -93,6 +101,7 @@ public enum YAML_Libraries
     /**
      * Whether the YAML-Library is an implementation based on java.util Collections.  If not, it's a SnakeYaml's Node-based implementtion.
      * @param _yl one the ENUM values of this class
+     * @return ( _yl == ESOTERICSOFTWARE_Library || _yl == CollectionsImpl_Library )
      */
     public static boolean isCollectionsImpl( final YAML_Libraries _yl ) {
         return ( _yl == ESOTERICSOFTWARE_Library || _yl == CollectionsImpl_Library );
@@ -101,6 +110,7 @@ public enum YAML_Libraries
     /**
      * Whether the YAML-Library is an implementation based on java.util Collections.  If not, it's a SnakeYaml's Node-based implementtion.
      * @param _ylstr a java.lang.String object whose value is one the ENUM values of this class
+     * @return ( _yl == ESOTERICSOFTWARE_Library || _yl == CollectionsImpl_Library )
      * @throws Exception if the parameter _ylstr is invalid
      */
     public static boolean isCollectionsImpl( final String _ylstr ) throws Exception {
@@ -111,6 +121,7 @@ public enum YAML_Libraries
     /**
      * Whether the YAML-Library is an implementation based on SnakeYaml's Node.  If not, it's a java.util Collections based implementtion.
      * @param _yl one the ENUM values of this class
+     * @return ( _yl == SNAKEYAML_Library || _yl == NodeImpl_Library )
      */
     public static boolean isNodeImpl( final YAML_Libraries _yl ) {
         return ( _yl == SNAKEYAML_Library || _yl == NodeImpl_Library );
@@ -119,6 +130,7 @@ public enum YAML_Libraries
     /**
      * Whether the YAML-Library is an implementation based on SnakeYaml's Node.  If not, it's a java.util Collections based implementtion.
      * @param _ylstr a java.lang.String object whose value is one the ENUM values of this class
+     * @return ( _yl == SNAKEYAML_Library || _yl == NodeImpl_Library )
      * @throws Exception if the parameter _ylstr is invalid
      */
     public static boolean isNodeImpl( final String _ylstr ) throws Exception {
