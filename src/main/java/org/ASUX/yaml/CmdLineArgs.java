@@ -47,45 +47,32 @@ import org.apache.commons.cli.*;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgs {
+public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
     public static final String CLASSNAME = CmdLineArgs.class.getName();
-
-    private static final String INPUTFILE = "inputfile";
-    private static final String OUTPUTFILE = "outputfile";
-    private static final String YAMLPATH = "yamlpath";
-    private static final String DELIMITER = "delimiter";
-    private static final String YAMLLIB = "yamllibrary";
-    // private static final String PROPERTIES = "properties";
-
-    public static final String NOQUOTE = "no-quote";
-    public static final String SINGLEQUOTE = "single-quote";
-    public static final String DOUBLEQUOTE = "double-quote";
+    protected static final String YAMLPATH = "yamlpath";
+    protected static final String DELIMITER = "delimiter";
+    protected static final String YAMLLIB = "yamllibrary";
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // These are for internal use - to help process user's commands
     protected org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
-    protected org.apache.commons.cli.CommandLine    apacheCmd;
-    public CmdEnum cmdType = CmdEnum.UNKNOWN;
-    protected String cmdAsStr;
-    protected int numArgs = -1;
+    protected org.apache.commons.cli.CommandLine    apacheCmdProcessor;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //These reflect the user's commandline options
-    public boolean verbose = false;
-    public boolean showStats = false;
-
     public String yamlRegExpStr = "undefined";
     public String yamlPatternDelimiter = ".";
 
-    public String inputFilePath = "/tmp/undefined";
-    public String outputFilePath = "/tmp/undefined";
-
     public YAML_Libraries YAMLLibrary = YAML_Libraries.NodeImpl_Library; // some default value for now
-    public Enums.ScalarStyle quoteType = Enums.ScalarStyle.FOLDED;
+
+    public CmdEnum cmdType = CmdEnum.UNKNOWN;
+    protected String cmdAsStr; // the string version of cmdType
+    protected int numArgs = -1;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
+     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -94,11 +81,12 @@ public class CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgs( final CmdEnum _cmdType,
+    public CmdLineArgs( final String[] args, final CmdEnum _cmdType,
                             final String _shortCmd, final String _longCmd, final String _cmdDesc,
                             final int _numArgs, final String _addlArgsDesc )
                             throws Exception
     {
+        this.args.addAll( java.util.Arrays.asList(args) );
         this.cmdType = _cmdType;
         this.cmdAsStr = _longCmd;
         this.numArgs = _numArgs;
@@ -106,25 +94,7 @@ public class CmdLineArgs {
         //==================================
         Option opt;
 
-        opt= new Option("v", "verbose", false, "Show debug output");
-        opt.setRequired(false);
-        this.options.addOption(opt);
-
-        opt= new Option("vs", "showStats", false, "Show - at end output - a summary of how many matches happened, or entries were affected");
-        opt.setRequired(false);
-        this.options.addOption(opt);
-
-        //----------------------------------
-        OptionGroup grp2 = new OptionGroup();
-        Option noQuoteOpt = new Option("nq", NOQUOTE, false, "do Not use Quotes in YAML output");
-        Option singleQuoteOpt = new Option("sq", SINGLEQUOTE, false, "use ONLY Single-quote when generating YAML output");
-        Option doubleQuoteOpt = new Option("dq", DOUBLEQUOTE, false, "se ONLY Double-quote when generating YAML output");
-        grp2.addOption(noQuoteOpt);
-        grp2.addOption(singleQuoteOpt);
-        grp2.addOption(doubleQuoteOpt);
-        grp2.setRequired(false);
-
-        this.options.addOptionGroup(grp2);
+        super.defineCommonOptions( this.options );
 
         //----------------------------------
         opt = new Option("zd", DELIMITER, false, "whether period/dot comma pipe or other character is the delimiter to use within the YAMLPATHPATTERN");
@@ -140,15 +110,6 @@ public class CmdLineArgs {
         opt.setOptionalArg(false);
         opt.setArgName("yamllibparam");
         opt.setType(YAML_Libraries.class);
-        this.options.addOption(opt);
-
-        //----------------------------------
-        opt = new Option("i", INPUTFILE, true, "input file path");
-        opt.setRequired(true);
-        this.options.addOption(opt);
-
-        opt = new Option("o", OUTPUTFILE, true, "output file");
-        opt.setRequired(true);
         this.options.addOption(opt);
 
         //----------------------------------
@@ -176,49 +137,38 @@ public class CmdLineArgs {
 
         try {
             // if ( ???.verbose ) ..
-            // what if the parse() statement below has issues.. ?  We can't expect to use this.apacheCmd.hasOption("verbose") 
+            // what if the parse() statement below has issues.. ?  We can't expect to use this.apacheCmdProcessor.hasOption("verbose") 
 // System.err.print( CLASSNAME +" parse(): _args = "+ _args +"  >>>>>>>>>>>>> "); for( String s: _args) System.out.print(s+"\t");  System.out.println();
 // System.err.println( CLASSNAME +" parse(): this = "+ this.toString() );
-            this.apacheCmd = parser.parse( this.options, _args );
+            this.apacheCmdProcessor = parser.parse( this.options, _args );
 
-            this.verbose = this.apacheCmd.hasOption("verbose");
-            this.showStats = this.apacheCmd.hasOption("showStats");
+            super.parseCommonOptions( this.apacheCmdProcessor );
 
-            this.yamlPatternDelimiter = this.apacheCmd.getOptionValue(DELIMITER);
+            this.yamlPatternDelimiter = this.apacheCmdProcessor.getOptionValue(DELIMITER);
             if ( this.yamlPatternDelimiter == null || this.yamlPatternDelimiter.equals(".") )
                 this.yamlPatternDelimiter = YAMLPath.DEFAULTDELIMITER;
 
-            if ( this.apacheCmd.getOptionValue(YAMLLIB) != null )
-                this.YAMLLibrary = YAML_Libraries.fromString( this.apacheCmd.getOptionValue(YAMLLIB) );
+            if ( this.apacheCmdProcessor.getOptionValue(YAMLLIB) != null )
+                this.YAMLLibrary = YAML_Libraries.fromString( this.apacheCmdProcessor.getOptionValue(YAMLLIB) );
             else
                 this.YAMLLibrary = YAML_Libraries.SNAKEYAML_Library; // default.
 
-            assert( this.apacheCmd.hasOption( this.cmdAsStr ) ); // sanity check
-
-            // this.yamlRegExpStr = this.apacheCmd.getOptionValue(YAMLPATH);
-            this.inputFilePath = this.apacheCmd.getOptionValue(INPUTFILE);
-            this.outputFilePath = this.apacheCmd.getOptionValue(OUTPUTFILE);
+            assert( this.apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
 
             // following are defined to be optional arguments, but mandatory for a specific command (as you can see from the condition of the IF statements).
-            this.yamlRegExpStr = this.apacheCmd.getOptionValue( this.cmdAsStr );
+            this.yamlRegExpStr = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr );
 
-            final String[] addlArgs = this.apacheCmd.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
+            final String[] addlArgs = this.apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
             if ( this.numArgs != addlArgs.length )
                 throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
             this.moreParsing( _args );
 
-            this.quoteType = Enums.ScalarStyle.FOLDED; // default behavior
-            if ( this.apacheCmd.hasOption( NOQUOTE ) ) this.quoteType = Enums.ScalarStyle.PLAIN;
-            if ( this.apacheCmd.hasOption( SINGLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.SINGLE_QUOTED;
-            if ( this.apacheCmd.hasOption( DOUBLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.DOUBLE_QUOTED;
-            if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
-
             // System.err.println( CLASSNAME +": "+this.toString());
 
         } catch (ParseException e) {
-            e.printStackTrace(System.err);
-            System.err.println( CLASSNAME +" parse(): failed for "+ this.options );
-            formatter.printHelp( "java <jarL> "+CLASSNAME, this.options );
+            e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
+            formatter.printHelp( "\njava <jarL> "+CLASSNAME, this.options );
+            System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ this.options );
             throw e;
         }
     }
@@ -237,25 +187,24 @@ public class CmdLineArgs {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
+    @Override
     public String toString() {
         return
-        "CmdEnumType="+cmdType +"("+cmdAsStr+") # of addl-args="+numArgs
-        +"verbose="+verbose+" showStats="+showStats+" YAML-Library="+YAMLLibrary
+        super.toString()
+        +" YAML-Library="+YAMLLibrary
         +" yamlRegExpStr="+yamlRegExpStr+" yamlPatternDelimiter="+yamlPatternDelimiter
-        +" inpfile="+inputFilePath+" outputfile="+outputFilePath
-        +" this.quoteType=["+this.quoteType+"] "
+        +" Cmd-Type="+cmdType +"("+cmdAsStr+") "
         ;
-        // yamlRegExpStr="+yamlRegExpStr+" 
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
+            final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( args, CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
             cmdLineArgsBase.parse(args);
         } catch( Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace(System.err); // main() for unit testing
             System.exit(1);
         }
     }
