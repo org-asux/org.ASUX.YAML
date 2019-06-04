@@ -60,8 +60,6 @@ import static org.junit.Assert.*;
  * <p> This is technically an independent class, but it is semantically a 'SUPER/PARENT' class of org.ASUX.yaml.CollectionsImpl.Cmd and org.ASUX.yaml.NodeImpl.Cmd</p>
  * <p> Those two subclasses helps process YAML files using (either the java.util Collections classes, by leveraging the EsotericSoftware's YamlBeans library, or the SnakeYaml library respectively).</p>
  * <p> This class is the "wrapper-processor" for the various "YAML-commands" (which traverse a YAML file to do what you want).</p>
- * <p>
- * </p>
  *
  * <p> The 4 YAML-COMMANDS are: <b>read/query, list, delete</b> and <b>replace</b>. </p>
  * <p> See full details of how to use these commands - in this GitHub project's wiki<br>
@@ -95,18 +93,19 @@ public class Cmd {
      */
     public static void main( String[] args )
     {
+        final String HDR = CLASSNAME +": main(): ";
         CmdLineArgsBasic cmdLineArgsBasic = null;
         final java.io.StringWriter stdoutSurrogate = new java.io.StringWriter();
 
         try {
             cmdLineArgsBasic = new CmdLineArgsBasic( args );
-            if ( cmdLineArgsBasic.verbose )  System.out.println( CLASSNAME +": main(): arguments ="+ cmdLineArgsBasic );
+            if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"arguments ="+ cmdLineArgsBasic );
 
             String classNameStr = null;
             if ( YAML_Libraries.isCollectionsImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
                 classNameStr = "org.ASUX.yaml.CollectionsImpl.Cmd";
             } else if ( YAML_Libraries.isNodeImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
-                classNameStr = "org.ASUX.yaml.NodeImpl.Cmd";
+                classNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
             }
             assert( classNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this assert does NOT throw
 
@@ -116,7 +115,7 @@ public class Cmd {
             // findClass() method of ClassLoader is NOT VISIBLE - its a protected method.
             // The findClass() method searches for the class in the current class loader, if the class wasn't found by the parent class loader.
             // i.e., findClass() will be invoked by loadClass(), after checking the parent class loader for the requested class.
-            if ( cmdLineArgsBasic.verbose )  System.out.println( CLASSNAME +": main(): classNameStr=["+classNameStr+"] successfully loaded using ClassLoader.");
+            if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"classNameStr=["+classNameStr+"] successfully loaded using ClassLoader.");
 
             //--------------------------------
             // First check to see if a static method called Run(/* no parameters */) is defined.
@@ -124,15 +123,15 @@ public class Cmd {
             final Class[] paramClassList = { String[].class };
             final Object[] methodArgs = { args };
             org.ASUX.common.GenericProgramming.invokeStaticMethod( implClass, "main", paramClassList, methodArgs );
-            if ( cmdLineArgsBasic.verbose ) System.out.println( CLASSNAME +": main(): returned from successfully invoking "+classNameStr+".main().");
+            if ( cmdLineArgsBasic.verbose ) System.out.println( HDR +"returned from successfully invoking "+classNameStr+".main().");
 
         } catch (ClassNotFoundException e) {
-            e.printStackTrace(System.err);
-            System.err.println( "Internal error: '" + cmdLineArgsBasic + "'.");
+            e.printStackTrace(System.err); // main() unit-testing
+            System.err.println( HDR +"Unit-testing: Internal error: '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         } catch (Exception e) {
-            e.printStackTrace(System.err);
-            System.err.println( "Internal error: '" + cmdLineArgsBasic + "'.");
+            e.printStackTrace(System.err); // main() unit-testing
+            System.err.println( HDR +"Unit-testing: Internal error: '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         }
 
