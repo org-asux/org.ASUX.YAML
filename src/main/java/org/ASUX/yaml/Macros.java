@@ -50,7 +50,6 @@ public class Macros {
 
     /** The only Constructor.
      *  @param _verbose Whether you want deluge of debug-output onto System.out
-     *  @param _showStats Whether you want a final summary onto console / System.out
      */
     public Macros(boolean _verbose ) {
 		this.verbose = _verbose;
@@ -74,15 +73,19 @@ public class Macros {
 
 	//------------------------------------------------------------------
 	/**
-	 * <p>Pass in a string as 1st parameter and a properties file as 2nd parameter.</p>
-	 * <p>All instances of ${ASUX::___} are replaced with values for ___ (within Properties instance).</p>
-	 * Any other expressions like ${XYZABC} are LEFT UNTOUCHED, as it does NOT have the ASUX:: prefixc.
-	 * @param _s the string which CAN (not required to) contain macro expressions like ${ASUX::___}
-	 * @param _props a java.util.Properties object (null will mean function returns immediately)
-	 * @return the original string as-is (if no macros were detected).. or the altered version
-	 * @throws Macros.MacroException if ANY failure in evaluating the macro on the input _s
+	 *  <p>Pass in a string as 1st parameter and a properties file as 2nd parameter.</p>
+	 *  <p>All instances of ${ASUX::___} are replaced with values for ___ (within Properties instance).</p>
+	 *  Any other expressions like ${XYZABC} are LEFT UNTOUCHED, as it does NOT have the ASUX:: prefixc.
+	 *  @param _verbose Whether you want deluge of debug-output onto System.out
+	 *  @param _s the string which CAN (not required to) contain macro expressions like ${ASUX::___}
+	 *  @param _props a java.util.Properties object (null will mean function returns immediately)
+	 *  @return the original string as-is (if no macros were detected).. or the altered version
+	 *  @throws Macros.MacroException if ANY failure in evaluating the macro on the input _s
 	 */
-	public static String eval( final String _s, final Properties _props) throws Macros.MacroException {
+	public static String eval( final boolean _verbose, final String _s, final Properties _props)
+										throws Macros.MacroException
+	{
+		final String HDR = CLASSNAME + ":eval("+ _verbose +","+ _s +",_props): ";
 		if (_s==null) return null;
 		if (_props==null) return _s;
 
@@ -123,9 +126,9 @@ public class Macros {
 			}
 
 		} catch (PatternSyntaxException e) {
-			e.printStackTrace(System.err);
+			if ( _verbose ) e.printStackTrace(System.err);
 			final String s = "PatternSyntaxException when checking if '" + _s + "' matches pattern " + Macros.pattStr;
-			System.err.println(CLASSNAME + ": eval(): Unexpected Internal ERROR: " + s );
+			System.err.println( HDR + " Unexpected Internal ERROR: " + s +"\nException message: "+ e );
 			throw new MacroException( s );
 		}
 
@@ -134,19 +137,20 @@ public class Macros {
 
 	//------------------------------------------------------------------
 	/**
-	 * This is a variant of eval(), to support Batch-Cmd mode, where BatchFile can load MULTIPLE property-files
-	 * @param _s the string which CAN (not required to) contain macro expressions like ${ASUX::___}
-	 * @param _propsSet a java.util.Properties object (null will mean function returns immediately)
-	 * @return the original string as-is (if no macros were detected).. or the altered version
-	 * @throws Macros.MacroException - thrown if any attempt to evaluate MACROs fails within eval() functions
+	 *  This is a variant of eval(), to support Batch-Cmd mode, where BatchFile can load MULTIPLE property-files
+	 *  @param _verbose Whether you want deluge of debug-output onto System.out
+	 *  @param _s the string which CAN (not required to) contain macro expressions like ${ASUX::___}
+	 *  @param _propsSet a java.util.Properties object (null will mean function returns immediately)
+	 *  @return the original string as-is (if no macros were detected).. or the altered version
+	 *  @throws Macros.MacroException - thrown if any attempt to evaluate MACROs fails within eval() functions
 	 */
-	public static String eval( final String _s, final LinkedHashMap<String,Properties> _propsSet )
-						throws Macros.MacroException
+	public static String eval( final boolean _verbose, final String _s, final LinkedHashMap<String,Properties> _propsSet )
+											throws Macros.MacroException
 	{
 		String retStr = _s;
 		for( String key: _propsSet.keySet() ) {
 			final Properties p = _propsSet.get(key);
-			final String newstr = eval( retStr, p);
+			final String newstr = eval( _verbose, retStr, p );
 			if ( newstr != null ) // this can happen if the _s is just the MACRO only.  Example:    ${ASUX::variable}
 				retStr = newstr;
 			// We can have multiple variables, for which values can be in different properties files
