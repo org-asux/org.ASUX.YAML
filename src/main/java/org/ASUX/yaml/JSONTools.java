@@ -78,10 +78,11 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
      *  Takes any STRING-form JSON as input - it better be valid JSON - and reads it back as YAML/LinkedHashMap.
      *  I need such a function, as I learned the hard way that libraries do NOT work 100% well.  Only file-formats are the workaorund/ way out.
      *  I definitely "fgool-proof" method to ensure 'valid' YAML, for error-free processing by the entire org.ASUX.yaml library to work without any issues
+     *  @param _verbose Whether you want deluge of debug-output onto System.out.
      *  @param _jsonString a java.lang.String object
      *  @return a java.util.LinkedHashMap&lt;String, Object&gt; object that's definitely "kosher" for the entire org.ASUX.yaml library to work without any issues
-     * @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
-     * @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
+     *  @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
+     *  @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
      */
     public static final LinkedHashMap<String, Object>  JSONString2Map( final boolean _verbose, final String  _jsonString )
                     throws java.io.IOException, Exception
