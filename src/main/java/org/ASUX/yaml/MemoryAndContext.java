@@ -33,6 +33,7 @@
 package org.ASUX.yaml;
 
 import java.util.LinkedHashMap;
+import java.util.Properties;
 
 /** 
  * <p>This class is the "memory" as we execute line by line - within a Batch-YAML-script.</p>
@@ -69,6 +70,8 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
      *  <p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p>
      */
     private transient LinkedHashMap<String, Object> savedOutputMaps = new LinkedHashMap<>();
+
+    private LinkedHashMap<String,Properties> allPropsReference = null;
 
     private final org.ASUX.yaml.CmdInvoker cmdinvoker;
 
@@ -115,6 +118,28 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
      */
     public void setSavedOutputMaps( LinkedHashMap<String, Object>  _savedOutputMaps ) {
         this.savedOutputMaps = _savedOutputMaps;
+    }
+
+    //======================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //======================================================================
+
+    /**
+     * This allows this class to interact better with BatchYamlProcessor.java, which is the authoritative source of all "saveAs" outputs.
+     *  <p>this.allPropsReference is primarily used for Macro evaluations only</p>
+     * @return this.savedOutputMaps
+     */
+    public LinkedHashMap<String,Properties> getAllPropsRef() {
+        return this.allPropsReference;
+    }
+
+    /**
+     *  <p>This allows this class to interact better with BatchYamlProcessor.java, which is the authoritative source of all "saveAs" outputs.</p>
+     *  <p>this.allPropsReference is primarily used for Macro evaluations only</p>
+     * @param _props from another instance of MemoryAndContext.class (by calling that other instance's {@link #getAllPropsRef})
+     */
+    public void setAllPropsRef( final LinkedHashMap<String,Properties> _props ) {
+        this.allPropsReference = _props;
     }
 
     //======================================================================
