@@ -33,15 +33,20 @@
 package org.ASUX.yaml;
 
 import org.ASUX.common.Tuple;
+import org.ASUX.common.Utils;
 
 import java.util.regex.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
+import java.util.Properties;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
+
+import static org.junit.Assert.*;
 
 /**
  *  <p>This is part of org.ASUX.yaml GitHub.com project and the <a href="https://github.com/org-asux/org-ASUX.github.io/wiki">org.ASUX.cmdline</a> GitHub.com projects.</p>
@@ -51,50 +56,53 @@ import java.io.ObjectInputStream;
  * @see org.ASUX.yaml.Cmd
  * @see org.ASUX.common.ConfigFileScanner
  */
-public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
+public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
 
     private static final long serialVersionUID = 5L;
     public static final String CLASSNAME = "org.ASUX.yaml.BatchFileGrammer";
-    public static final String FOREACH_PROPERTIES = "foreachCMD.properties";
-    public static final String GLOBALVARIABLES = "GLOBAL.VARIABLES";
-    public static final String SYSTEM_ENV = "System.env";
 
-	public static final String REGEXP_INLINEVALUE = "['\" ${}@%a-zA-Z0-9\\[\\]\\.,:_/-]+";
-	public static final String REGEXP_NAMESUFFIX  =     "[${}@%a-zA-Z0-9\\.,:_/-]+";
-	public static final String REGEXP_NAME = "[a-zA-Z$]" + REGEXP_NAMESUFFIX;
-	public static final String REGEXP_FILENAME = "[a-zA-Z$/\\.]" + REGEXP_NAMESUFFIX;
-	public static final String REGEXP_OBJECT_REFERENCE = "[@!]" + REGEXP_FILENAME;
+    public static final String FOREACH_PROPERTIES = "foreach_loop.properties";
 
-    private static final String REGEXP_ECHO = "^\\s*echo\\s+(\\S.*\\S)\\s*$";
+    public static final String REGEXP_YAMLLIBRARY = "^\\s*useYAMLLibrary\\s+("+ YAML_Libraries.list("|") +")\\s*$";
+    public static final String REGEXP_MKNEWROOT = "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*$";
+    public static final String REGEXP_BATCH = "^\\s*batch\\s+("+ REGEXP_FILENAME +")\\s*$";
+    public static final String REGEXP_SAVETO = "^\\s*saveTo\\s+("+ REGEXP_OBJECT_REFERENCE +")\\s*$";
+    public static final String REGEXP_USEASINPUT = "^\\s*useAsInput\\s+("+ REGEXP_OBJECT_REFERENCE +"|"+ REGEXP_INLINEVALUE +")\\s*$";
+    public static final String REGEXP_VERBOSE = "^\\s*verbose\\s+(on|off)\\s*$";
+    public static final String REGEXP_PRINTDASH = "^\\s*print\\s+[-]\\s*$";
+
     //--------------------------------------------------------
 
-    public enum BatchCmdType { Cmd_MakeNewRoot, Cmd_Batch, Cmd_Foreach, Cmd_End, Cmd_Properties, Cmd_SetProperty, Cmd_SaveTo, Cmd_UseAsInput, Cmd_Print, Cmd_YAMLLibrary, Cmd_Verbose, Cmd_Sleep, Cmd_Any };
+    public enum BatchCmdType { Cmd_MakeNewRoot, Cmd_SubBatch, Cmd_Foreach, Cmd_End, Cmd_SaveTo, Cmd_UseAsInput, Cmd_YAMLLibrary, Cmd_Verbose, Cmd_PrintDash, Cmd_Any };
     private BatchCmdType whichCmd = BatchCmdType.Cmd_Any;
 
-    private boolean bLine2bEchoed = false;
     private YAML_Libraries YAMLLibrary = YAML_Libraries.ASUXYAML_Library;
 
     private String saveTo = null;
     private String useAsInput = null;
     private String makeNewRoot = null;
     private String subBatchFile = null;
-    private Tuple<String,String> propertiesKV = null;
     private boolean batchVerbose = false;
-    private String printExpr = null;
-    private int sleepDuration = 1; // === 1millisecond.  Precaution: So that by mistake we do Not end up calling sleep(0), which is forever.
-
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    /** <p>The only constructor - public/private/protected</p>
+    /** <p>The basic constructor - that does __NOT__ allow you to evaluate Macro-expressions like ${XYZ}</p>
      *  @param _verbose Whether you want deluge of debug-output onto System.out.
+     *  @param _propsSet a REFERENCE to an instance of LinkedHashMap, whose object-lifecycle is maintained by some other class (as in, creating new LinkedHashMap&lt;&gt;(), putting content into it, updating content as File is further processed, ..)
      */
-    public BatchFileGrammer(boolean _verbose) {
-        super ( _verbose );
+    public BatchFileGrammer( boolean _verbose, final LinkedHashMap<String,Properties> _propsSet ) {
+        super( _verbose, _propsSet );
     }
 
-    private BatchFileGrammer() { super(); }
-
+    /**
+     * Since super-classes are abstract classes, parse() line - when it encounters a 'include @filename' - needs to invoke a constructor that creates a 2nd object.
+     * @return an object of the subclass of this ConfigFileScannerL2.java
+     */
+    @Override
+    protected BatchFileGrammer   create() {
+        final BatchFileGrammer newobj = new BatchFileGrammer( this.verbose, super.allProps );
+        return newobj;
+    }
 
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -102,65 +110,89 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
 
     /** This function is exclusively for use within the go() - the primary function within this class - to make this very efficient when responding to the many isXXX() methods in this class.
      */
+    @Override
     protected void resetFlagsForEachLine() {
+        super.resetFlagsForEachLine();
+
         this.whichCmd = BatchCmdType.Cmd_Any;
-        this.bLine2bEchoed = false;
         this.YAMLLibrary = YAML_Libraries.ASUXYAML_Library;
 
-        this.propertiesKV = null;
-        this.printExpr = null;
         this.saveTo = null;
         this.useAsInput = null;
         this.makeNewRoot = null;
         this.subBatchFile = null;
         this.batchVerbose = false;
-        this.sleepDuration = 1; // 1millisecond.  Precaution: So that by mistake we do Not end up calling sleep(0), which is forever.
     }
 
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    /** For use by any Processor of this batch-file.. whether the user added the 'echo' prefix to a command, requesting that that specific line/command be echoed while executing
-     * @return true or false, whether the user added the 'echo' prefix to a command, requesting that that specific line/command be echoed while executing
-    */
-    public boolean isLine2bEchoed() {
-        return this.bLine2bEchoed;
-    }
+    // /**
+    //  *  <p>This method is used to simply tell whether 'current-line' matches the REGEXP patterns that parseLine() will be processing 'internally' within this class</p>
+    //  *  <p>In this class, those would be the REGEXP for 'print ...' and 'include @...'</p>
+    //  *  @param nextLn current line or 'peek-forward' line
+    //  *  @return true if the line will be processed 'internally'
+    //  */
+    // @Override
+    // protected boolean isBuiltInCommand( final String nextLn )
+    // {   final String HDR = CLASSNAME +": isBuiltInCommand(): ";
+
+    //     if ( super.isBuiltInCommand(nextLn) )
+    //         return true;
+
+    //     if ( nextLn == null ) return false;
+    //     final String noprefix = removeEchoPrefix( nextLn );
+    //     if ( this.verbose ) System.out.println( HDR +"noprefix="+ noprefix );
+    //     final boolean retb = noprefix.matches( REGEXP_YAMLLIBRARY ) || noprefix.matches( REGEXP_MKNEWROOT ) || noprefix.matches( REGEXP_BATCH )
+    //                         || noprefix.matches( REGEXP_SAVETO ) || noprefix.matches( REGEXP_USEASINPUT ) || noprefix.matches( REGEXP_VERBOSE )
+    //                         || noprefix.matches( REGEXP_PRINTDASH );
+    //     if ( this.verbose ) System.out.println( HDR +" whether (y/n)="+ retb );
+
+    //     !!!!!!!!! ATTENTION !!!!!!!!!!!! The above are NOT Built-In commands.  In identifyLine() method below, we only identify, we do NOT actually implement the command
+    //     return false;
+    // }
+
+    //==============================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
 
     public BatchCmdType getCmdType() {
         return this.whichCmd;
     }
 
-    private String getLineNoEchoPrefix( String _line ) {
-        if ( _line == null )
-            _line = this.currentLineOrNull();
-        Pattern echoPattern = Pattern.compile( REGEXP_ECHO );
-        Matcher echoMatcher    = echoPattern.matcher( _line );
-        if (echoMatcher.find()) {
-            return echoMatcher.group(1); // line.substring( echoMatcher.start(), echoMatcher.end() );
-        } else {
-            return _line;
-        }
-    }
+    //==============================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
 
-
-    //===========================================================================
-    /** This overrides the method from parent class org.ASUX.common.ConfigFileScanner.java
-     *  This override is reqired to "parse out" prefixes like 'ecbo'
-     *  @return the next string in the list of lines (else an exception is thrown)
+    /** Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScannerL2#nextLine()}
+     *  @return for scripts that end in PRINT command, this returns null. Otherwise, Returns the next string in the list of lines.
      *  @throws Exception in case this class is messed up or hasNextLine() is false or has Not been invoked appropriately
      */
     @Override
-    public String currentLine() throws Exception
-    {
-        // !!!!!!!!!!!!!!!!!!!!!! OVERRIDE Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
-        if ( this.isLine2bEchoed() ) {
-            // return this.nextLine(); // this will Not be null.. just because of the call to hasNextLine() above.
-            return this.getLineNoEchoPrefix( super.currentLine() );
-        } else {
-            return super.currentLine();
+    public String nextLine() throws Exception
+    {   // !!!!!!!!!!!!!!!!!!!!!! OVERRIDES Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
+        final String nextLn = super.nextLine();
+        this.identifyLine();
+        return nextLn; // could also be: return this.currentLine();
+    }
+
+    /** Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScanner#nextLineOrNull()}
+     *  @return either null (graceful failure) or the next string in the list of lines
+     */
+    @Override
+    public String nextLineOrNull()
+    {   final String HDR = CLASSNAME +": nextLineOrNull(): ";
+        final String nextLn = super.nextLineOrNull();
+        try {
+            this.identifyLine();
+        } catch (Exception e) {
+            // since we shouldn't be getting this error, but .. as it's not the end of the world.. let's dump error on the user and return NULL.
+            e.printStackTrace(System.out);
+            System.out.println( "\n\n"+ HDR + " Unexpected Internal ERROR @ " + this.getState() +"." );
+            return null;
         }
+        return nextLn; // could also be: return this.currentLine();
     }
 
     //==============================================================================
@@ -168,146 +200,104 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
     //==============================================================================
 
     /**
-     * This method should be called after nextLine().  nextLine() is inherited from the parent {@link org.ASUX.common.ConfigFileScanner}.
-     * @throws Exception in case of any errors.
+    /** <p>New Method added to this subclass.  Implement your command parsing and do as appropriate.</p>
+     *  <p>ATTENTION: Safely assume that any 'echo' prefix parsing and any 'print' parsing has happened already in a TRANSAPARENT way.</p>
+     *  <p>This method is automatically invoked _WITHIN_ nextLine().  nextLine() is inherited from the parent {@link org.ASUX.common.ScriptFileScanner}.</p>
+     *  @throws Exception in case of any errors.
      */
-    public void determineCmdType() throws Exception {
+    protected void identifyLine() throws Exception
+    {
+        final String HDR = CLASSNAME +": parseLine(): ";
 
-        this.resetFlagsForEachLine();
         String line = this.currentLineOrNull(); // remember the line is most likely already trimmed.  We need to chop off any 'echo' prefix
-        if ( this.verbose ) System.out.println( CLASSNAME +": determineCmdType("+ line +"): "+ this.getState() );
-
-        if ( line == null )
-            return;
+        if ( this.verbose ) System.out.println( HDR +": line=("+ line +")\t"+ this.getState() );
+        assertTrue ( line != null );
 
         try {
-            // ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // This block of code below (echoPattern, echoMatcher, this.bLine2bEchoed) MUST be the very BEGINNNG of this function
-            Pattern echoPattern = Pattern.compile( REGEXP_ECHO );
-            Matcher echoMatcher    = echoPattern.matcher( line );
-            if (echoMatcher.find()) {
-                if ( this.verbose ) System.out.println( CLASSNAME +": I found the command to be ECHO-ed '"+ echoMatcher.group(1) +"' starting at index "+  echoMatcher.start() +" and ending at index "+ echoMatcher.end() );    
-                line = echoMatcher.group(1); // line.substring( echoMatcher.start(), echoMatcher.end() );
-                this.bLine2bEchoed = true;
-                if ( this.verbose ) System.out.println( "\t 2nd echoing Line # "+ this.getState() );
-                // fall thru below.. to identify the commands
-            }
 
-            Pattern yamlLibraryPattern = Pattern.compile( "^\\s*useYAMLLibrary\\s+("+ YAML_Libraries.list("|") +")\\s*$" );
+            Pattern yamlLibraryPattern = Pattern.compile( REGEXP_YAMLLIBRARY );
             Matcher yamlLibraryMatcher    = yamlLibraryPattern.matcher( line );
             if (yamlLibraryMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ yamlLibraryMatcher.group() +" starting at index "+  yamlLibraryMatcher.start() +" and ending at index "+ yamlLibraryMatcher.end() );    
                 this.YAMLLibrary = YAML_Libraries.fromString( yamlLibraryMatcher.group(1) ); // line.substring( yamlLibraryMatcher.start(), yamlLibraryMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t YAMLLibrary=[" + this.YAMLLibrary +"]" );
                 this.whichCmd = BatchCmdType.Cmd_YAMLLibrary;
-                return;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            Pattern makeNewRootPattern = Pattern.compile( "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*$" );
+            Pattern makeNewRootPattern = Pattern.compile( REGEXP_MKNEWROOT );
             Matcher makeNewRootMatcher    = makeNewRootPattern.matcher( line );
             if (makeNewRootMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ makeNewRootMatcher.group() +" starting at index "+  makeNewRootMatcher.start() +" and ending at index "+ makeNewRootMatcher.end() );    
                 this.makeNewRoot = makeNewRootMatcher.group(1); // line.substring( makeNewRootMatcher.start(), makeNewRootMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t makeNewRoot=[" + this.makeNewRoot +"]" );
                 this.whichCmd = BatchCmdType.Cmd_MakeNewRoot;
-                return;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            Pattern batchPattern = Pattern.compile( "^\\s*batch\\s+("+ REGEXP_FILENAME +")\\s*$" );
+            Pattern batchPattern = Pattern.compile( REGEXP_BATCH );
             Matcher batchMatcher    = batchPattern.matcher( line );
             if (batchMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ batchMatcher.group() +" starting at index "+  batchMatcher.start() +" and ending at index "+ batchMatcher.end() );    
                 this.subBatchFile = batchMatcher.group(1); // line.substring( batchMatcher.start(), batchMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t batch=[" + this.subBatchFile +"]" );
-                this.whichCmd = BatchCmdType.Cmd_Batch;
-                return;
+                this.whichCmd = BatchCmdType.Cmd_SubBatch;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
 			if ( line.equalsIgnoreCase( "foreach" ) ) {
 				this.whichCmd = BatchCmdType.Cmd_Foreach;
                 this.batchVerbose = false;  // I do Not want 'verbose on' to last OUTSIDE the loop/block in which it is specified.
-				return;
+				return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
 			}
 
 			if ( line.equalsIgnoreCase("end") ) {
                 this.whichCmd = BatchCmdType.Cmd_End;
                 this.batchVerbose = false;  // I do Not want 'verbose on' to last OUTSIDE the loop/block in which it is specified.
-				return;
+				return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
 			}
 
-            Pattern propsPattern = Pattern.compile( "^\\s*properties\\s+("+ REGEXP_NAME +")=("+ REGEXP_FILENAME +")\\s*$" );
-            Matcher propsMatcher    = propsPattern.matcher( line );
-            if (propsMatcher.find()) {
-                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ propsMatcher.group() +" starting at index "+  propsMatcher.start() +" and ending at index "+ propsMatcher.end() );    
-                this.propertiesKV = new Tuple<String,String>( propsMatcher.group(1), propsMatcher.group(2) );
-                            // line.substring( propsMatcher.start(), propsMatcher.end() );
-                if ( this.verbose ) System.out.println( "\t KVPair=[" + this.propertiesKV.key +","+ this.propertiesKV.val +"]" );
-                this.whichCmd = BatchCmdType.Cmd_Properties;
-				return;
-            }
-
-            Pattern setPropPattern = Pattern.compile( "^\\s*setProperty\\s+("+ REGEXP_NAME +")=("+ REGEXP_FILENAME +")\\s*$" );
-            Matcher setPropMatcher    = setPropPattern.matcher( line );
-            if (setPropMatcher.find()) {
-                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ setPropMatcher.group() +" starting at index "+  setPropMatcher.start() +" and ending at index "+ setPropMatcher.end() );    
-                this.propertiesKV = new Tuple<String,String>( setPropMatcher.group(1), setPropMatcher.group(2) );
-                            // line.substring( setPropMatcher.start(), setPropMatcher.end() );
-                if ( this.verbose ) System.out.println( "\t KVPair=[" + this.propertiesKV.key +","+ this.propertiesKV.val +"]" );
-                this.whichCmd = BatchCmdType.Cmd_SetProperty;
-				return;
-            }
-
-            Pattern printPattern = Pattern.compile( "^\\s*print\\s+(\\S.*\\S|-)\\s*$" );
-            Matcher printMatcher    = printPattern.matcher( line );
-            if (printMatcher.find()) {
-                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ printMatcher.group() +" starting at index "+  printMatcher.start() +" and ending at index "+ printMatcher.end() );    
-                this.printExpr  = printMatcher.group(1); // line.substring( printMatcher.start(), printMatcher.end() );
-                if ( this.verbose ) System.out.println( "\t print=[" + this.printExpr +"]" );
-                this.whichCmd = BatchCmdType.Cmd_Print;
-                return ;
-            }
-
-            Pattern saveToPattern = Pattern.compile( "^\\s*saveTo\\s+("+ REGEXP_OBJECT_REFERENCE +")\\s*$" );
+            Pattern saveToPattern = Pattern.compile( REGEXP_SAVETO );
             Matcher saveToMatcher    = saveToPattern.matcher( line );
             if (saveToMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ saveToMatcher.group() +" starting at index "+  saveToMatcher.start() +" and ending at index "+ saveToMatcher.end() );    
                 this.saveTo = saveToMatcher.group(1); // line.substring( saveToMatcher.start(), saveToMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t SaveTo=[" + this.saveTo +"]" );
                 this.whichCmd = BatchCmdType.Cmd_SaveTo;
-                return;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            Pattern useAsInputPattern = Pattern.compile( "^\\s*useAsInput\\s+("+ REGEXP_OBJECT_REFERENCE +"|"+ REGEXP_INLINEVALUE +")\\s*$" );
+            Pattern useAsInputPattern = Pattern.compile( REGEXP_USEASINPUT );
             Matcher useAsInputMatcher    = useAsInputPattern.matcher( line );
             if (useAsInputMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ useAsInputMatcher.group() +" starting at index "+  useAsInputMatcher.start() +" and ending at index "+ useAsInputMatcher.end() );    
                 this.useAsInput = useAsInputMatcher.group(1); // line.substring( useAsInputMatcher.start(), useAsInputMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t useAsInput=[" + this.useAsInput +"]" );
                 this.whichCmd = BatchCmdType.Cmd_UseAsInput;
-                return;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            Pattern verbosePattern = Pattern.compile( "^\\s*verbose\\s+(on|off)\\s*$" );
+            Pattern verbosePattern = Pattern.compile( REGEXP_VERBOSE );
             Matcher verboseMatcher    = verbosePattern.matcher( line );
             if (verboseMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ verboseMatcher.group() +" starting at index "+  verboseMatcher.start() +" and ending at index "+ verboseMatcher.end() );    
                 this.batchVerbose = "on".equals( verboseMatcher.group(1) ); // line.substring( verboseMatcher.start(), verboseMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t verbose=[" + this.batchVerbose +"]" );
                 this.whichCmd = BatchCmdType.Cmd_Verbose;
-                return;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            Pattern sleepPattern = Pattern.compile( "^\\s*sleep\\s+(\\d\\d*)\\s*$" );
-            Matcher sleepMatcher    = sleepPattern.matcher( line );
-            if (sleepMatcher.find()) {
-                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ sleepMatcher.group() +" starting at index "+  sleepMatcher.start() +" and ending at index "+ sleepMatcher.end() );    
-                this.sleepDuration = Integer.parseInt( sleepMatcher.group(1) ); // line.substring( sleepMatcher.start(), sleepMatcher.end() );
-                if ( this.verbose ) System.out.println( "\t sleep=[" + this.sleepDuration +"]" );
-                this.whichCmd = BatchCmdType.Cmd_Sleep;
-                return;
+            Pattern printDashPattern = Pattern.compile( REGEXP_PRINTDASH );
+            Matcher printDashMatcher    = printDashPattern.matcher( line );
+            if (printDashMatcher.find()) {
+                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ printDashMatcher.group() +" starting at index "+  printDashMatcher.start() +" and ending at index "+ printDashMatcher.end() );    
+                if ( this.verbose ) System.out.println( "\t 'print -'" );
+                this.whichCmd = BatchCmdType.Cmd_PrintDash;
+                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
             }
 
-            return;
+            if ( this.verbose ) System.out.println( HDR +" Oh! oh! oh! oh! oh! oh! oh! oh! oh! Unknown command=("+ line +")\t"+ this.getState() );
+            // If we're here.. it means, This class did NOT process the current line
 
         } catch (PatternSyntaxException e) {
 			e.printStackTrace(System.err); // too serious an internal-error.  Immediate bug-fix required.  The application/Program will exit .. in 2nd line below.
@@ -319,25 +309,6 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
-    /** This function helps detect if the current line pointed to by this.currentLine() contains a property entry (a.k.a. a KVPair entry of the form key=value)
-     * @return either null.. or, the Key + Value (an instance of the Tuple class) detected in the current line of batch file
-     */
-    public Tuple<String,String> getPropertyKV() {
-        if ( this.whichCmd == BatchCmdType.Cmd_Properties || this.whichCmd == BatchCmdType.Cmd_SetProperty )
-            return this.propertiesKV; // we've already executed the code below - SPECIFICALLY for the current Line!
-        else
-            return null;
-    }
-
-    /** This function helps detect if the current line pointed to by this.currentLine() contains a property entry (a.k.a. a Tools.KVPair entry of the form key=value)
-     * @return either null.. or, the Key + Value (an instance of the Tuple class) detected in the current line of batch file
-     */
-    public String getPrintExpr() {
-        if ( this.whichCmd == BatchCmdType.Cmd_Print )
-            return this.printExpr; 
-        else
-            return null;
-    }
 
     /** This function helps detect if the current line pointed to by this.currentLine() contains a 'saveTo ___' entry
      *  @return String the argument provided to the saveTo command
@@ -373,7 +344,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
      *  @return String the argument provided to the Batch command 
      */
     public String getSubBatchFile() {
-        if ( this.whichCmd == BatchCmdType.Cmd_Batch )
+        if ( this.whichCmd == BatchCmdType.Cmd_SubBatch )
             return this.subBatchFile;
         else
             return null;
@@ -392,20 +363,6 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
      */
     public boolean getVerbose() {
         return this.batchVerbose || this.verbose;
-        // if ( this.whichCmd == BatchCmdType.Cmd_Verbose )
-        //     return this.batchVerbose;
-        // else
-        //     return false;
-    }
-
-    /** This function helps detect if the current line pointed to by this.currentLine() contains a 'sleep ___' entry - which will cause the Batch-file-processing to take a quick nap as directed.
-     *  @return String the argument provided to the 'sleep' command
-     */
-    public int getSleepDuration() {
-        if ( this.whichCmd == BatchCmdType.Cmd_Sleep )
-            return this.sleepDuration;
-        else
-            return 1; // === 1millisecond.  Precaution: So that by mistake we do Not end up calling sleep(0), which is forever.
     }
 
     //==================================
@@ -442,7 +399,7 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
             return null; // Since.. It is one of the above commands like: properties, saveAs, foreach, end, useAsInput, makeNewRoot, .. ..
 
         try {
-            final java.util.Scanner scanner = new java.util.Scanner( this.getLineNoEchoPrefix(null) );
+            final java.util.Scanner scanner = new java.util.Scanner( this.currentLine() );
             scanner.useDelimiter("\\s+");
 
             if (scanner.hasNext()) { // default whitespace delimiter used by a scanner
@@ -467,35 +424,27 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    /** This deepClone function is unnecessary, if you can invoke org.apache.commons.lang3.SerializationUtils.clone(this)
+    /** This deepClone function is VERY MUCH necessary, as No cloning-code can handle 'transient' variables in this class/superclass.
      *  @param _orig what you want to deep-clone
      *  @return a deep-cloned copy, created by serializing into a ByteArrayOutputStream and reading it back (leveraging ObjectOutputStream)
      */
-    public static BatchFileGrammer deepClone(BatchFileGrammer _orig) {
-        final BatchFileGrammer newobj = (BatchFileGrammer) org.ASUX.common.ConfigFileScanner.deepClone(_orig);
-        return newobj;
-        // try {
-        //     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        //     ObjectOutputStream oos = new ObjectOutputStream(baos);
-        //     oos.writeObject(_orig);
-            
-        //     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        //     ObjectInputStream ois = new ObjectInputStream(bais);
-        //     final BatchFileGrammer newobj = (BatchFileGrammer) ois.readObject();
-
-        //     // because this class has at least one TRANSIENT class-variable.. ..
-        //     newobj.reset();
- 
-        //     return newobj;
-
-        // } catch (java.io.IOException e) {
-		// 	e.printStackTrace(System.err); // too serious an error.  Typically, failure to clone an object that is NOT 100% java.io.Serializable
-        //     return null;
-        // } catch (ClassNotFoundException e) {
-		// 	e.printStackTrace(System.err); // too serious an error.  Typically, failure to clone an object that is NOT In classpath (wierd things can happen due to software bugs)
-        //     return null;
-        // }
+    public static BatchFileGrammer deepClone( final BatchFileGrammer _orig ) {
+        try {
+            final BatchFileGrammer newobj = Utils.deepClone( _orig );
+            newobj.deepCloneFix();
+            return newobj;
+        } catch (Exception e) {
+			e.printStackTrace(System.err); // Static Method. So.. can't avoid dumping this on the user.
+            return null;
+        }
     }
+
+    // /**
+    //  * In order to allow deepClone() to work seamlessly up and down the class-hierarchy.. I should allow subclasses to EXTEND (Not semantically override) this method.
+    //  */
+    // protected void deepCloneFix() {
+    //         // UNLIKE SUPER-Class .. this CLASS DOES NOT __ANY__ TRANSIENT class-variable.. ..
+    // }
 
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -503,16 +452,13 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try {
-            final BatchFileGrammer o = new BatchFileGrammer(true);
+            final BatchFileGrammer o = new BatchFileGrammer(true, new LinkedHashMap<String,Properties>() );
             o.openFile( args[0], true, false );
             while (o.hasNextLine()) {
                 System.out.println(o.nextLine());
                 o.getState();
 
                 o.isLine2bEchoed();
-                o.getPropertyKV();
-                o.getPrintExpr();
-                // final Tuple kv = o.isPropertyLine(); // could be null, implying NOT a kvpair
 
                 o.isForEachLine();
                 o.isEndLine();
@@ -520,7 +466,6 @@ public class BatchFileGrammer extends org.ASUX.common.ConfigFileScanner {
                 o.getUseAsInput();
                 o.getMakeNewRoot();
                 o.getSubBatchFile();
-                o.getSleepDuration();
                 final boolean bForEach = o.isForEachLine();
                 if ( bForEach ) System.out.println("\t Loop begins=[" + bForEach + "]");
                 final boolean bEndLine = o.isEndLine();
