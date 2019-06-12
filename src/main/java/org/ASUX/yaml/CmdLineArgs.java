@@ -132,6 +132,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
      */
     public final void parse( String[] _args ) throws Exception
     {
+        final String HDR = CLASSNAME + ": parse():";
         org.apache.commons.cli.CommandLineParser parser = new DefaultParser();
         org.apache.commons.cli.HelpFormatter formatter = new HelpFormatter();
 
@@ -165,11 +166,24 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
             // System.err.println( CLASSNAME +": "+this.toString());
 
-        } catch (ParseException e) {
+        } catch( MissingOptionException moe) {
+            moe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
+            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
+            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
+            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
+            throw new ParseException( moe.getMessage() );  // Specifically for use by Cmd.main()
+        } catch (ParseException pe) {
+            pe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
+            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
+            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
+            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
+            throw pe;
+        } catch( Exception e) {
             e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            formatter.printHelp( "\njava <jarL> "+CLASSNAME, this.options );
-            System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ this.options );
-            throw e;
+            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
+            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
+            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
+            throw new ParseException( e.getMessage() );  // Specifically for use by Cmd.main()
         }
     }
 

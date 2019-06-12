@@ -125,13 +125,17 @@ public class Cmd {
             org.ASUX.common.GenericProgramming.invokeStaticMethod( implClass, "main", paramClassList, methodArgs );
             if ( cmdLineArgsBasic.verbose ) System.out.println( HDR +"returned from successfully invoking "+classNameStr+".main().");
 
+        } catch ( org.apache.commons.cli.ParseException pe ) {
+            // ATTENTION: If CmdLineArgs.java  and its subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
+            // so.. do NOTHING in this class (Cmd.java)
+            System.exit(9);
         } catch (ClassNotFoundException e) {
             e.printStackTrace(System.err); // main() unit-testing
-            System.err.println( HDR +"Unit-testing: Internal error: '" + cmdLineArgsBasic + "'.");
+            System.err.println( HDR +".main(): Internal error(ClassNotFoundException): '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         } catch (Exception e) {
             e.printStackTrace(System.err); // main() unit-testing
-            System.err.println( HDR +"Unit-testing: Internal error: '" + cmdLineArgsBasic + "'.");
+            System.err.println( HDR +".main(): Internal error: '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         }
 

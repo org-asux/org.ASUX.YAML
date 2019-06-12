@@ -221,16 +221,34 @@ public class CmdLineArgsBasic {
                 cla = batchCmdLineArgs;
             }
 
-            //----------------------------------------------
-            // let the subclassses do the parsing based on individual command's needs
-            this.cmdLineArgs = cla;
-            this.cmdLineArgs.parse( args );
-
         } catch (ParseException e) {
             e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
             formatter.printHelp( "\njava <jarL> "+CLASSNAME, options );
             System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ options );
             throw e;
+        }
+        //----------------------------------------------
+        // let the subclassses do the parsing based on individual command's needs
+        try {
+            this.cmdLineArgs = cla;
+            this.cmdLineArgs.parse( args );
+        } catch( MissingOptionException moe) {
+            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
+            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
+            // Just make sure to convert all Exceptions into a ParseException()
+            throw new ParseException( moe.getMessage() ); // Specifically for use by Cmd.main()
+        } catch (ParseException pe) {
+            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
+            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
+            // pe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
+            // formatter.printHelp( "\njava <jarL> "+CLASSNAME, options ); <--- Let the sub-classes show the 'help'
+            // System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ options );
+            throw pe; // Specifically for use by Cmd.main()
+        } catch( Exception e) {
+            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
+            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
+            // Just make sure to convert all Exceptions into a ParseException()
+            throw new ParseException( e.getMessage()); // Specifically for use by Cmd.main()
         }
     }
 
