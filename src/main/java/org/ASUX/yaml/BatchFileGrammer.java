@@ -32,6 +32,7 @@
 
 package org.ASUX.yaml;
 
+import org.ASUX.common.Debug;
 import org.ASUX.common.Tuple;
 import org.ASUX.common.Utils;
 
@@ -60,8 +61,6 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
 
     private static final long serialVersionUID = 5L;
     public static final String CLASSNAME = "org.ASUX.yaml.BatchFileGrammer";
-
-    public static final String FOREACH_PROPERTIES = "foreach_loop.properties";
 
     public static final String REGEXP_YAMLLIBRARY = "^\\s*useYAMLLibrary\\s+("+ YAML_Libraries.list("|") +")\\s*$";
     public static final String REGEXP_MKNEWROOT = "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*$";
@@ -100,7 +99,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
      */
     @Override
     protected BatchFileGrammer   create() {
-        final BatchFileGrammer newobj = new BatchFileGrammer( this.verbose, super.allProps );
+        final BatchFileGrammer newobj = new BatchFileGrammer( this.verbose, super.propsSetRef );
         return newobj;
     }
 
@@ -129,27 +128,21 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     //==============================================================================
 
     // /**
-    //  *  <p>This method is used to simply tell whether 'current-line' matches the REGEXP patterns that parseLine() will be processing 'internally' within this class</p>
+    //  *  <p>This method is used to simply tell whether 'current-line' matches the REGEXP patterns that execBuiltInCommand() will be processing 'internally' within this class</p>
     //  *  <p>In this class, those would be the REGEXP for 'print ...' and 'include @...'</p>
     //  *  @param nextLn current line or 'peek-forward' line
     //  *  @return true if the line will be processed 'internally'
     //  */
     // @Override
-    // protected boolean isBuiltInCommand( final String nextLn )
-    // {   final String HDR = CLASSNAME +": isBuiltInCommand(): ";
-
+    // protected boolean isBuiltInCommand( final String nextLn ) {
     //     if ( super.isBuiltInCommand(nextLn) )
     //         return true;
-
-    //     if ( nextLn == null ) return false;
     //     final String noprefix = removeEchoPrefix( nextLn );
     //     if ( this.verbose ) System.out.println( HDR +"noprefix="+ noprefix );
     //     final boolean retb = noprefix.matches( REGEXP_YAMLLIBRARY ) || noprefix.matches( REGEXP_MKNEWROOT ) || noprefix.matches( REGEXP_BATCH )
     //                         || noprefix.matches( REGEXP_SAVETO ) || noprefix.matches( REGEXP_USEASINPUT ) || noprefix.matches( REGEXP_VERBOSE )
     //                         || noprefix.matches( REGEXP_PRINTDASH );
-    //     if ( this.verbose ) System.out.println( HDR +" whether (y/n)="+ retb );
-
-    //     !!!!!!!!! ATTENTION !!!!!!!!!!!! The above are NOT Built-In commands.  In identifyLine() method below, we only identify, we do NOT actually implement the command
+    //     !!!!!!!!! ATTENTION !!!!!!!!!!!! The above are NOT Built-In commands.  In execBuiltInCommand() method below, we only identify, we do NOT actually implement the command
     //     return false;
     // }
 
@@ -165,7 +158,8 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    /** Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScannerL2#nextLine()}
+    /** <p>Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScannerL2#nextLine()}</p>
+     *  <p>The only reason to override is to invoke {@link #identifyLine()} automatically</p>
      *  @return for scripts that end in PRINT command, this returns null. Otherwise, Returns the next string in the list of lines.
      *  @throws Exception in case this class is messed up or hasNextLine() is false or has Not been invoked appropriately
      */
@@ -177,19 +171,21 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
         return nextLn; // could also be: return this.currentLine();
     }
 
-    /** Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScanner#nextLineOrNull()}
+    /** <p>Thie method overrides the parent/super class method {@link org.ASUX.common.ConfigFileScanner#nextLineOrNull()}</p>
+     *  <p>The only reason to override is to invoke {@link #identifyLine()} automatically</p>
      *  @return either null (graceful failure) or the next string in the list of lines
      */
     @Override
     public String nextLineOrNull()
-    {   final String HDR = CLASSNAME +": nextLineOrNull(): ";
+    {   // !!!!!!!!!!!!!!!!!!!!!! OVERRIDES Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
         final String nextLn = super.nextLineOrNull();
         try {
             this.identifyLine();
         } catch (Exception e) {
+            final String HDR = CLASSNAME +": nextLineOrNull(): ";
             // since we shouldn't be getting this error, but .. as it's not the end of the world.. let's dump error on the user and return NULL.
-            e.printStackTrace(System.out);
-            System.out.println( "\n\n"+ HDR + " Unexpected Internal ERROR @ " + this.getState() +"." );
+            e.printStackTrace(System.err);
+            System.err.println( "\n\n"+ HDR + " Unexpected Internal ERROR @ " + this.getState() +"." );
             return null;
         }
         return nextLn; // could also be: return this.currentLine();
@@ -207,7 +203,8 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
      */
     protected void identifyLine() throws Exception
     {
-        final String HDR = CLASSNAME +": parseLine(): ";
+        final String HDR = CLASSNAME +": identifyLine(): ";
+// new Exception(HDR).printStackTrace( System.err );
 
         String line = this.currentLineOrNull(); // remember the line is most likely already trimmed.  We need to chop off any 'echo' prefix
         if ( this.verbose ) System.out.println( HDR +": line=("+ line +")\t"+ this.getState() );
@@ -388,7 +385,58 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
             return false;
     }
 
+    //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
+
+    /**
+     *  <p>To allow us to skip from current 'foreach' to the matching 'end', while smartly ignoring INNER 'foreach'-'end' pairs.</p>
+     *  <p>When this function returns, the "pointer" within batchCmds (.currentLine and .getLineNum()) ..
+     *          should be pointing to the matching 'end' command.</p>
+     *  <p>The body of this method counts the # of inner 'foreach' .. and that's how it knows when the matching 'end' was detected.</p>
+     * @throws Exception when unable to find a matching 'end' within the batch-file.
+     */
+    public void skip2MatchingEnd() throws Exception
+    {
+        final String HDR = CLASSNAME + ": skip2MatchingEnd(): ";
+        assert( this.currentLineNum >= 1 ); // see ConfigFileScanner.java
+        final int bookmark = this.getLineNum();
+        boolean bFoundMatchingENDCmd = false;
+        int recursionLevel = 0;
+
+        // cannot use this.hasNextLine().. as it has been overridden in ConfigFileScannerL2, to automatically skip "BUILT-IN-Commands".
+        for ( int ix = this.currentLineNum; ix < this.lines.size(); ix++ ) {
+            // Now advance this.iterator to the right position
+
+            this.currentLineAfterMacroEval = org.ASUX.common.ConfigFileScanner.nextLineOrNull( this );
+            // if I call super.nextLineOrNull().. I'll end up ___EXECUTING__ ALL built-in commands..
+            // Just want to skip all lines to matching 'end'.   'Skip' means.. literal implementation as in lowest-super-class.
+
+            // if ( this.verbose ) System.out.println( HDR +" skipping cmd "+ this.getState() );
+            this.identifyLine(); // we've successfully parsed these lines already.. so, this statement shouldn't throw any errors.
+
+            final boolean bForEach22 = this.isForEachLine();
+            if ( bForEach22 ) recursionLevel ++;
+
+            final boolean bEnd22 = this.isEndLine();
+            if ( bEnd22 ) {
+                recursionLevel --;
+                if ( recursionLevel < 0 ) {
+                    bFoundMatchingENDCmd = true;
+                    break; // we're done completely SKIPPING all the lines between 'foreach' --> 'end'
+                } else
+                    continue; // while this.hasNextLine()
+            } // if bEnd22
+        } // for loop
+        if ( this.verbose ) System.err.println( HDR +"Skipped from row# "+ bookmark +"to matching 'end' @ line# "+ this.currentLineNum );
+        if (  !  bFoundMatchingENDCmd ) // sanity check.  This exception will get thrown if logic in the 100 lines above isn't water-tight
+            throw new Exception( " ERROR In "+ this.getState() +"] !!STARTING!! from line# "+ bookmark +".. do NOT see a MATCHING 'end' keyword following the  'foreach'.");
+    }
+
+    //==============================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
+
     /**
      * This function should be called *AFTER* all the various is___() functions/methods have been called.
      * This function should NOT be called BEFORE isSaveToLine() and isUseAsInputLine(), as this function will get you confused.
@@ -428,13 +476,18 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
      *  @param _orig what you want to deep-clone
      *  @return a deep-cloned copy, created by serializing into a ByteArrayOutputStream and reading it back (leveraging ObjectOutputStream)
      */
-    public static BatchFileGrammer deepClone( final BatchFileGrammer _orig ) {
+    public static BatchFileGrammer deepClone( final BatchFileGrammer _orig )
+    {   final String HDR = CLASSNAME +": deepClone(): ";
+        assertTrue( _orig != null );
         try {
+// new Debug(true).printAllProps( HDR +" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> deepClone ORIG <<<<<<<<<<<<<<<<<<<<<<<<<<<< ", _orig.propsSetRef );
             final BatchFileGrammer newobj = Utils.deepClone( _orig );
-            newobj.deepCloneFix();
+            newobj.deepCloneFix( _orig );
+// new Debug(true).printAllProps( HDR +" >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> deepClone NEW! <<<<<<<<<<<<<<<<<<<<<<<<<<<< ", newobj.propsSetRef );
             return newobj;
         } catch (Exception e) {
 			e.printStackTrace(System.err); // Static Method. So.. can't avoid dumping this on the user.
+            System.exit(233);
             return null;
         }
     }
