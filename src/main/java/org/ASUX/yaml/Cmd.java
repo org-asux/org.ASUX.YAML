@@ -129,13 +129,17 @@ public class Cmd {
             // ATTENTION: If CmdLineArgs.java  and its subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
             // so.. do NOTHING in this class (Cmd.java)
             System.exit(9);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace(System.err); // main() unit-testing
-            System.err.println( HDR +".main(): Internal error(ClassNotFoundException): '" + cmdLineArgsBasic + "'.");
+        } catch (ClassNotFoundException e2) {
+            e2.printStackTrace(System.err); // main() unit-testing
+            System.err.println( "\n\nInternal Error!\t"+ HDR +" error(ClassNotFoundException): '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         } catch (Exception e) {
             e.printStackTrace(System.err); // main() unit-testing
-            System.err.println( HDR +".main(): Internal error: '" + cmdLineArgsBasic + "'.");
+            System.err.println( "\n\nInternal Error!\t"+ HDR +" for '" + cmdLineArgsBasic + "'.");
+            System.exit(6);
+        } catch (Throwable t) {
+            t.printStackTrace(System.err); // main() unit-testing
+            System.err.println( "\n\nInternal Error!\t"+ HDR +" for '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         }
 
