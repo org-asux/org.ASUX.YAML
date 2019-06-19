@@ -161,7 +161,8 @@ public abstract class CmdLineArgsCommon {
         if ( cmd.hasOption( SINGLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.SINGLE_QUOTED;
         if ( cmd.hasOption( DOUBLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.DOUBLE_QUOTED;
         if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
-        assertTrue( this.quoteType != Enums.ScalarStyle.UNDEFINED );
+        // DO NOT do this --> assertTrue( this.quoteType != Enums.ScalarStyle.UNDEFINED );
+        // We now __actually use__ UNDEFINED to represent the fact that the end-user did NOT provide anything on the commandline (whether no-quote, single or double)
     }
 
     //=================================================================================
