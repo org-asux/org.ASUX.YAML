@@ -64,7 +64,7 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsReplaceCmd( final String[] args, final CmdEnum _cmdType,
+    public CmdLineArgsReplaceCmd( final String[] args, final Enums.CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
@@ -98,7 +98,7 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( args, CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( args, Enums.CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
             cla.parse(args);
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit-testing
