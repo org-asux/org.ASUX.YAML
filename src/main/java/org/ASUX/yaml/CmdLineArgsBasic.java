@@ -60,7 +60,7 @@ public class CmdLineArgsBasic {
     public static final String[] DELETECMD = { "d", "delete", "Delete all elements that match" };
     public static final String[] TABLECMD = { "t", "table", "produce a tabular output like a traditional SQL-query would" };
     // public static final char REPLACECMDCHAR = 'c'; // -c === --replace
-    public static final String[] MACROCMD = { "m", "macro", "run input YAML file thru a MACRO processor searching for ${ASUX::__} and replacing __ with values from Properties file" };
+    public static final String[] MACROYAMLCMD = { "m", "macroyaml", "run valid-proper YAML-input (file) thru a MACRO processor searching for ${ASUX::__} and replacing __ with values from Properties file" };
     public static final String[] BATCHCMD = { "b", "batch", "run a batch of commands, which are listed in the <batchfile>" };
 
     public static final String YAMLLIB = "yamllibrary";
@@ -74,7 +74,7 @@ public class CmdLineArgsBasic {
     //------------------------------------
     private final CmdLineArgs cmdLineArgs;
 
-    public CmdEnum cmdType = CmdEnum.UNKNOWN;
+    public Enums.CmdEnum cmdType = Enums.CmdEnum.UNKNOWN;
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -144,7 +144,7 @@ public class CmdLineArgsBasic {
         Option replCmdOpt = new Option( REPLACECMD[0], REPLACECMD[1], true, REPLACECMD[2] );
         Option delCmdOpt = new Option( DELETECMD[0], DELETECMD[1], true, DELETECMD[2] );
         Option tableCmdOpt = new Option( TABLECMD[0], TABLECMD[1], false, TABLECMD[2] );
-        Option macroCmdOpt = new Option( MACROCMD[0], MACROCMD[1], true, MACROCMD[2] );
+        Option macroCmdOpt = new Option( MACROYAMLCMD[0], MACROYAMLCMD[1], true, MACROYAMLCMD[2] );
         Option batchCmdOpt = new Option( BATCHCMD[0], BATCHCMD[1], true, BATCHCMD[2] );
         grp.addOption(readCmdOpt);
         grp.addOption(listCmdOpt);
@@ -183,40 +183,40 @@ public class CmdLineArgsBasic {
 
             //----------------------------------------------
             if ( cmd.hasOption(READCMD[1]) ) {
-                this.cmdType = CmdEnum.READ;
+                this.cmdType = Enums.CmdEnum.READ;
                 // this.yamlRegExpStr = cmd.getOptionValue(READCMD);
                 cla = new CmdLineArgs( args, this.cmdType, READCMD[0], READCMD[1], READCMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(LISTCMD[1]) ) {
-                this.cmdType = CmdEnum.LIST;
+                this.cmdType = Enums.CmdEnum.LIST;
                 cla = new CmdLineArgs( args, this.cmdType, LISTCMD[0], LISTCMD[1], LISTCMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(INSERTCMD[1]) ) {
-                this.cmdType = CmdEnum.INSERT;
+                this.cmdType = Enums.CmdEnum.INSERT;
                 final CmdLineArgsInsertCmd insertCmdLineArgs = new CmdLineArgsInsertCmd( args, this.cmdType, INSERTCMD[0], INSERTCMD[1], INSERTCMD[2], 2, "YAMLPattern> <newValue" );
                 cla = insertCmdLineArgs;
             }
             if ( cmd.hasOption(DELETECMD[1]) ) {
-                this.cmdType = CmdEnum.DELETE;
+                this.cmdType = Enums.CmdEnum.DELETE;
                 cla = new CmdLineArgs( args, this.cmdType, DELETECMD[0], DELETECMD[1], DELETECMD[2], 1, "YAMLPattern" );
             }
             if ( cmd.hasOption(REPLACECMD[1]) ) {
-                this.cmdType = CmdEnum.REPLACE;
+                this.cmdType = Enums.CmdEnum.REPLACE;
                 final CmdLineArgsReplaceCmd replaceCmdLineArgs = new CmdLineArgsReplaceCmd( args, this.cmdType, REPLACECMD[0], REPLACECMD[1], REPLACECMD[2], 2, "YAMLPattern> <newValue" );
                 cla = replaceCmdLineArgs;
             }
             if ( cmd.hasOption(TABLECMD[1]) ) {
-                this.cmdType = CmdEnum.TABLE;
+                this.cmdType = Enums.CmdEnum.TABLE;
                 final CmdLineArgsTableCmd tableCmdLineArgs = new CmdLineArgsTableCmd( args, this.cmdType, TABLECMD[0], TABLECMD[1], TABLECMD[2], 2, "YAMLPattern> <column,column" );
                 cla = tableCmdLineArgs;
             }
-            if ( cmd.hasOption(MACROCMD[1]) ) {
-                this.cmdType = CmdEnum.MACRO;
-                final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( args, this.cmdType, MACROCMD[0], MACROCMD[1], MACROCMD[2], 1, "propertiesFile" );
+            if ( cmd.hasOption(MACROYAMLCMD[1]) ) {
+                this.cmdType = Enums.CmdEnum.MACROYAML;
+                final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( args, this.cmdType, MACROYAMLCMD[0], MACROYAMLCMD[1], MACROYAMLCMD[2], 1, "propertiesFile" );
                 cla = macroCmdLineArgs;
             }
             if ( cmd.hasOption(BATCHCMD[1]) ) {
-                this.cmdType = CmdEnum.BATCH;
+                this.cmdType = Enums.CmdEnum.BATCH;
                 final CmdLineArgsBatchCmd batchCmdLineArgs = new CmdLineArgsBatchCmd( args, this.cmdType, BATCHCMD[0], BATCHCMD[1], BATCHCMD[2], 1, "batchFile" );
                 cla = batchCmdLineArgs;
             }
