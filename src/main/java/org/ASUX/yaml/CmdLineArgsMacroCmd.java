@@ -64,7 +64,7 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsMacroCmd( final String[] args, final CmdEnum _cmdType,
+    public CmdLineArgsMacroCmd( final String[] args, final Enums.CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
@@ -81,7 +81,7 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
     protected void moreParsing( String[] _args ) throws Exception {
-        this.propertiesFilePath = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROCMD[1] );
+        this.propertiesFilePath = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROYAMLCMD[1] );
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -95,7 +95,7 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsMacroCmd cla = new CmdLineArgsMacroCmd( args, CmdEnum.MACRO, CmdLineArgsBasic.MACROCMD[0], CmdLineArgsBasic.MACROCMD[1], CmdLineArgsBasic.MACROCMD[2], 1, "propertiesFile" );
+            final CmdLineArgsMacroCmd cla = new CmdLineArgsMacroCmd( args, Enums.CmdEnum.MACROYAML, CmdLineArgsBasic.MACROYAMLCMD[0], CmdLineArgsBasic.MACROYAMLCMD[1], CmdLineArgsBasic.MACROYAMLCMD[2], 1, "propertiesFile" );
             cla.parse(args);
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit-testing
