@@ -34,6 +34,8 @@ package org.ASUX.yaml;
 
 import org.apache.commons.cli.*;
 
+import static org.junit.Assert.*;
+
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -154,7 +156,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
             else
                 this.YAMLLibrary = YAML_Libraries.SNAKEYAML_Library; // default.
 
-            assert( this.apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
+            assertTrue( this.apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
 
             // following are defined to be optional arguments, but mandatory for a specific command (as you can see from the condition of the IF statements).
             this.yamlRegExpStr = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr );

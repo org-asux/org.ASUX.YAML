@@ -107,7 +107,7 @@ public class Cmd {
             } else if ( YAML_Libraries.isNodeImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
                 classNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
             }
-            assert( classNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this assert does NOT throw
+            assertTrue( classNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
 
             //--------------------------------
             // returns: protected Class<?> -- throws ClassNotFoundException

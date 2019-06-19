@@ -399,7 +399,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     public void skip2MatchingEnd() throws Exception
     {
         final String HDR = CLASSNAME + ": skip2MatchingEnd(): ";
-        assert( this.currentLineNum >= 1 ); // see ConfigFileScanner.java
+        assertTrue( this.currentLineNum >= 1 ); // see ConfigFileScanner.java
         final int bookmark = this.getLineNum();
         boolean bFoundMatchingENDCmd = false;
         int recursionLevel = 0;

@@ -36,6 +36,8 @@ import java.util.ArrayList;
 
 import org.apache.commons.cli.*;
 
+import static org.junit.Assert.*;
+
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -159,7 +161,7 @@ public abstract class CmdLineArgsCommon {
         if ( cmd.hasOption( SINGLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.SINGLE_QUOTED;
         if ( cmd.hasOption( DOUBLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.DOUBLE_QUOTED;
         if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
-        assert( this.quoteType != Enums.ScalarStyle.UNDEFINED );
+        assertTrue( this.quoteType != Enums.ScalarStyle.UNDEFINED );
     }
 
     //=================================================================================
