@@ -43,6 +43,10 @@ public final class Enums
 {
     public static final String CLASSNAME = Enums.class.getName();
 
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
     public enum ScalarStyle {
         DOUBLE_QUOTED('"'),
         SINGLE_QUOTED('\''),
@@ -114,5 +118,77 @@ public final class Enums
         }
 
     } // Enum ScalarStyle
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    /** Class that captures the ennumeration of the various commands supported by the org.ASUX.YAML implementation
+     */
+    public enum CmdEnum {
+
+        READ("read"), LIST("list"), DELETE("delete"), INSERT("insert"), REPLACE("replace"), TABLE("table"), MACRO("macro"), MACROYAML("macroyaml"), BATCH("batch"), UNKNOWN("unknown");
+
+        private final String internalValue;
+        public static final String CLASSNAME =CmdEnum.class.getName();
+
+        //=================================
+        /** <p>This constructor is private.  the right way to create new objects of this enum are via the {@link #fromString}.</p>
+         * <p>For Enums based on strings, you need a constructor like this.  Only reason: To save the parameter as an internal variable.</p>
+         * <p>Per Java language spec, this constructor is private (as I understand it)</p>
+         * @param _i
+         */
+        private CmdEnum(final String _i) {
+            this.internalValue = _i;
+        }
+
+        //=================================
+        /** @see java.lang.Enum#toString()
+         */
+        @Override
+        public String toString() {
+            return this.internalValue;
+        }
+
+        //=================================
+        /**
+         * Given a string, this method will help convert the string into the standard ENUM values of this class.  If, invalid input.. an exception is thrown.
+         * @param type a string value that should be one of com.esotericsoftware.yamlbeans org.yaml.snakeyaml.Yaml org.ASUX.yaml
+         * @return a valid ENUM value of this class
+         * @throws Exception if string parameter is invalid
+         */
+        public static CmdEnum fromString(String type) throws Exception {
+            for (CmdEnum typeitem : CmdEnum.values()) {
+                if (typeitem.toString().equals(type)) {
+                    return typeitem;
+                }
+            }
+            throw new Exception ( CLASSNAME + ": fromString("+ type +"): should be one of the values: "+ list("\t") );
+            // return YAML_Libraries.SNAKEYAML_Library; // Default.. or you can throw exception
+        }
+
+        //=================================
+        /**
+         * Use this method to define your REGEXPRESSIONS by providing a '|' as delimiter.
+         * @param _delim any string you want
+         * @return the valid values (com.esotericsoftware.yamlbeans org.yaml.snakeyaml.Yaml org.ASUX.yaml) separated by the delimiter
+         */
+        public static String list( final String _delim ) {
+            // return ""+ ESOTERICSOFTWARE_Library +_delim+ SNAKEYAML_Library +_delim+ ASUXYAML_Library;
+            String retval = "";
+            for (CmdEnum typeitem : CmdEnum.values()) {
+                retval += typeitem.toString() + _delim;
+            }
+            return retval;
+        }
+    }
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
 
 };
