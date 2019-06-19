@@ -64,7 +64,7 @@ public class CmdLineArgsBatchCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsBatchCmd( final String[] args, final CmdEnum _cmdType,
+    public CmdLineArgsBatchCmd( final String[] args, final Enums.CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
@@ -95,7 +95,7 @@ public class CmdLineArgsBatchCmd extends CmdLineArgs {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgsBatchCmd cla = new CmdLineArgsBatchCmd( args, CmdEnum.BATCH, CmdLineArgsBasic.BATCHCMD[0], CmdLineArgsBasic.BATCHCMD[1], CmdLineArgsBasic.BATCHCMD[2], 1, "BatchFileName" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            final CmdLineArgsBatchCmd cla = new CmdLineArgsBatchCmd( args, Enums.CmdEnum.BATCH, CmdLineArgsBasic.BATCHCMD[0], CmdLineArgsBasic.BATCHCMD[1], CmdLineArgsBasic.BATCHCMD[2], 1, "BatchFileName" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
             cla.parse(args);
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit-testing
