@@ -68,7 +68,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
     public YAML_Libraries YAMLLibrary = YAML_Libraries.NodeImpl_Library; // some default value for now
 
-    public CmdEnum cmdType = CmdEnum.UNKNOWN;
+    public Enums.CmdEnum cmdType = Enums.CmdEnum.UNKNOWN;
     protected String cmdAsStr; // the string version of cmdType
     protected int numArgs = -1;
 
@@ -83,7 +83,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgs( final String[] args, final CmdEnum _cmdType,
+    public CmdLineArgs( final String[] args, final Enums.CmdEnum _cmdType,
                             final String _shortCmd, final String _longCmd, final String _cmdDesc,
                             final int _numArgs, final String _addlArgsDesc )
                             throws Exception
@@ -217,7 +217,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
     // For unit-testing purposes only
     public static void main(String[] args) {
         try{
-            final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( args, CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
+            final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( args, Enums.CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
             cmdLineArgsBase.parse(args);
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit testing
