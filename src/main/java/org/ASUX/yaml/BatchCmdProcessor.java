@@ -122,7 +122,15 @@ public abstract class BatchCmdProcessor<T extends Object> {
 
     public void setMemoryAndContext( final MemoryAndContext _mnc ) {
         this.memoryAndContext = _mnc;
-        this.memoryAndContext.setAllPropsRef( this.allProps );
+        // this.memoryAndContext.setAllPropsRef( this.allProps );   <-- it should be the other way around (as in, next line)
+        this.allProps = _mnc.getAllPropsRef();
+        if ( this.allProps == null ) {
+            this.allProps = BatchCmdProcessor.initProperties();
+            this.memoryAndContext.setAllPropsRef( this.allProps );
+        } else {
+            this.allProps = BatchCmdProcessor.initProperties( this.allProps );
+        }
+
     }
 
     //------------------------------------------------------------------------------
@@ -138,12 +146,26 @@ public abstract class BatchCmdProcessor<T extends Object> {
     /**
      *  <p>Creates a well-initialized list of java.util.Properties objects, for use by Operating-System-linked OSScriptFileScanner or it's subclasses.</p>
      *  <p>Currently, the list is augmented by adding just one new Properties object labelled {@link #FOREACH_PROPERTIES}</p>
+     *  <p>If the instance passed in as argument to this method _ALREADY_ has a Property object labelled {@link #FOREACH_PROPERTIES}, then no action is taken.</p>
+     *  @param _allProps a NotNull instance (else NullPointerException is thrown)
+     *  @return a NotNull object
+     */
+    public static LinkedHashMap<String,Properties> initProperties( final LinkedHashMap<String,Properties> _allProps ) {
+        final Properties existing = _allProps.get( FOREACH_PROPERTIES );
+        if ( existing == null )
+            _allProps.put( FOREACH_PROPERTIES, new Properties() );
+        return _allProps;
+    }
+
+    /**
+     *  <p>Creates a well-initialized list of java.util.Properties objects, for use by Operating-System-linked OSScriptFileScanner or it's subclasses.</p>
+     *  <p>Currently, the list is augmented by adding just one new Properties object labelled {@link #FOREACH_PROPERTIES}</p>
      *  @return a NotNull object
      */
     public static LinkedHashMap<String,Properties> initProperties() {
-        final LinkedHashMap<String,Properties> allProps = org.ASUX.common.OSScriptFileScanner.initProperties();
+        LinkedHashMap<String,Properties> allProps = org.ASUX.common.OSScriptFileScanner.initProperties();
         // _allProps.put( org.ASUX.common.ScriptFileScanner.SYSTEM_ENV, System.getProperties() );
-        allProps.put( FOREACH_PROPERTIES, new Properties() );
+        allProps = BatchCmdProcessor.initProperties( allProps );
         return allProps;
     }
 
