@@ -100,6 +100,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     @Override
     protected BatchFileGrammer   create() {
         final BatchFileGrammer newobj = new BatchFileGrammer( this.verbose, super.propsSetRef );
+        newobj.useDelimiter( this.delimiter() );
         return newobj;
     }
 
@@ -506,6 +507,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     public static void main(String[] args) {
         try {
             final BatchFileGrammer o = new BatchFileGrammer(true, new LinkedHashMap<String,Properties>() );
+            o.useDelimiter( ";|"+System.lineSeparator() );
             o.openFile( args[0], true, false );
             while (o.hasNextLine()) {
                 System.out.println(o.nextLine());
