@@ -71,8 +71,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
 
     // I prefer a LinkedHashMap over a plain HashMap.. as it can help with future enhancements like Properties#1, #2, ..
     // That is being aware of Sequence in which Property-files are loaded.   Can't do that with HashMap
-    protected LinkedHashMap<String,Properties> allProps = new LinkedHashMap<String,Properties>();
-
+    protected LinkedHashMap<String,Properties> allProps = BatchCmdProcessor.initProperties();
 
     /** <p>Whether you want deluge of debug-output onto System.out.</p><p>Set this via the constructor.</p>
      *  <p>It's read-only (final data-attribute).</p>
@@ -107,9 +106,10 @@ public abstract class BatchCmdProcessor<T extends Object> {
         this.showStats = _showStats;
         this.quoteType = _quoteType;
 
-        this.allProps.put( FOREACH_PROPERTIES, new Properties() );
-        this.allProps.put( org.ASUX.common.ScriptFileScanner.GLOBALVARIABLES, new Properties() );
-        this.allProps.put( org.ASUX.common.ScriptFileScanner.SYSTEM_ENV, System.getProperties() );
+        // this.allProps.put( FOREACH_PROPERTIES, new Properties() );
+        // this.allProps = org.ASUX.common.OSScriptFileScanner.initProperties( this.allProps );
+        // this.allProps.put( org.ASUX.common.ScriptFileScanner.GLOBALVARIABLES, new Properties() );
+        // this.allProps.put( org.ASUX.common.ScriptFileScanner.SYSTEM_ENV, System.getProperties() );
 
         // if ( this.verbose ) new Debug(this.verbose).printAllProps(" >>> ", this.allProps);
     }
@@ -129,6 +129,22 @@ public abstract class BatchCmdProcessor<T extends Object> {
     public static class BatchFileException extends Exception {
         public static final long serialVersionUID = 391L;
         public BatchFileException(String _s) { super(_s); }
+    }
+
+    //==============================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
+
+    /**
+     *  <p>Creates a well-initialized list of java.util.Properties objects, for use by Operating-System-linked OSScriptFileScanner or it's subclasses.</p>
+     *  <p>Currently, the list is augmented by adding just one new Properties object labelled {@link #FOREACH_PROPERTIES}</p>
+     *  @return a NotNull object
+     */
+    public static LinkedHashMap<String,Properties> initProperties() {
+        final LinkedHashMap<String,Properties> allProps = org.ASUX.common.OSScriptFileScanner.initProperties();
+        // _allProps.put( org.ASUX.common.ScriptFileScanner.SYSTEM_ENV, System.getProperties() );
+        allProps.put( FOREACH_PROPERTIES, new Properties() );
+        return allProps;
     }
 
     //==============================================================================
@@ -194,6 +210,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
         String line = null;
 
         final BatchFileGrammer batchCmds = new BatchFileGrammer( this.verbose, this.allProps );
+        batchCmds.useDelimiter( ";|"+System.lineSeparator() );
 
         try {
             if ( batchCmds.openFile( _batchFileName, true, true ) ) {
