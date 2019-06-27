@@ -62,9 +62,11 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     private static final long serialVersionUID = 5L;
     public static final String CLASSNAME = "org.ASUX.yaml.BatchFileGrammer";
 
+    public static final String REGEXP_INLINEVALUE = "['\" ${}@%a-zA-Z0-9\\[\\]\\.,:_/-]+"; // You better keep this INSYNC with ConfigFileScannerL2.REGEXP_NAME
+
     public static final String REGEXP_YAMLLIBRARY = "^\\s*useYAMLLibrary\\s+("+ YAML_Libraries.list("|") +")\\s*$";
     public static final String REGEXP_MKNEWROOT = "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*$";
-    public static final String REGEXP_BATCH = "^\\s*batch\\s+("+ REGEXP_FILENAME +")\\s*$";
+    public static final String REGEXP_BATCH = "^\\s*batch\\s+("+ REGEXP_NAME +")\\s*$";
     public static final String REGEXP_SAVETO = "^\\s*saveTo\\s+("+ REGEXP_OBJECT_REFERENCE +")\\s*$";
     public static final String REGEXP_USEASINPUT = "^\\s*useAsInput\\s+("+ REGEXP_OBJECT_REFERENCE +"|"+ REGEXP_INLINEVALUE +")\\s*$";
     public static final String REGEXP_VERBOSE = "^\\s*verbose\\s+(on|off)\\s*$";
