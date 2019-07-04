@@ -452,16 +452,32 @@ public abstract class BatchCmdProcessor<T extends Object> {
                                     throws Macros.MacroException,  java.io.IOException, Exception
     {
         final String HDR = CLASSNAME +": processSaveToLine(): ";
-        final String saveTo_AsIs = _batchCmds.getSaveTo();
+        final String saveTo_AsIs = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes(   _batchCmds.getSaveTo()   );
         if ( saveTo_AsIs != null ) {
-            final String saveTo = Macros.evalThoroughly( this.verbose, saveTo_AsIs, this.allProps );
+            String saveTo = Macros.evalThoroughly( this.verbose, saveTo_AsIs, this.allProps );
+            if ( this.verbose ) System.out.println( HDR +" #1 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
+            final boolean bOkIfMissing = saveTo.startsWith("?"); // that is, the script-file line was:- 'properties kwom=?fnwom'
+            saveTo = saveTo.startsWith("?") ? saveTo.substring(1) : saveTo; // remove the '?' prefix from key/lhs string
+            // repeat a 2nd time - in case user entered '?' BEFORE the quotes surrounding the SaveTo-path
+            saveTo = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( saveTo );
+            if ( this.verbose ) System.out.println( HDR +" #2 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
+
             if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null )
                 throw new BatchFileException( HDR +" ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory from one line of the batch file to the next.  And a SaveTo line was encountered for ["+ saveTo +"]" );
             else {
+                // if the user prefixed the saveTo-path with a '?', we should NOT overwrite existing content.
+                if ( bOkIfMissing ) {
+                    final Object o = this.memoryAndContext.getContext().getDataFromReference( saveTo ); // see if something exists __ALREADY__ in memory under this label.
+                    if ( o != null ) {
+                        @SuppressWarnings("unchecked")
+                        T ret = (T) o;
+                        return ret;
+                    } // else fall thru below.
+                } // else fall thru below.
                 final T newnode = deepClone( _node );
                 this.memoryAndContext.getContext().saveDataIntoReference( saveTo, newnode );
                 return newnode;
-            }
+            } // if-else
         } else 
             throw new BatchFileException( HDR +" ERROR In "+ _batchCmds.getState() +".. Missing or empty label for SaveTo line was encountered = ["+ saveTo_AsIs +"]" );
     }
@@ -481,7 +497,13 @@ public abstract class BatchCmdProcessor<T extends Object> {
         final String HDR = CLASSNAME +": processUseAsInputLine(): ";
         final String inputFrom_AsIs = _batchCmds.getUseAsInput();
         String inputFrom = Macros.evalThoroughly( this.verbose, inputFrom_AsIs, this.allProps );
+        if ( this.verbose ) System.out.println( HDR +" #1 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ inputFrom.substring(1) + "'" );
         inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
+        final boolean bOkIfMissing = inputFrom.startsWith("?"); // that is, the script-file line was:- 'properties kwom=?fnwom'
+        inputFrom = inputFrom.startsWith("?") ? inputFrom.substring(1) : inputFrom; // remove the '?' prefix from key/lhs string
+        // repeat a 2nd time - in case user entered '?' BEFORE the quotes
+        inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
+        if ( this.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ inputFrom.substring(1) + "'" );
 
         if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null ) {
             throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory to carry it from one line of the batch file to the next.  And a useAsInput line was encountered for ["+ inputFrom +"]" );
@@ -492,10 +514,14 @@ public abstract class BatchCmdProcessor<T extends Object> {
                 final T retMap3 = (T) o;
                 return retMap3;
             } else {
-                final String es = (o==null) ? "Nothing in memory under that label." : ("We have type="+ o.getClass().getName()  +" = ["+ o.toString() +"]");
-                throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
-            }
-        }
+                if ( bOkIfMissing && o == null ) 
+                    return this.getEmptyYAML();
+                else {
+                    final String es = (o==null) ? "Nothing in memory under that label." : ("We have type="+ o.getClass().getName()  +" = ["+ o.toString() +"]");
+                    throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
+                }
+            } // if instanceof_YAMLImplClass( o )
+        } // if-else
     }
 
     //=============================================================================
