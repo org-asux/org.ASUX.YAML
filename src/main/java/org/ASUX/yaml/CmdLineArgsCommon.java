@@ -51,7 +51,9 @@ import static org.junit.Assert.*;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public abstract class CmdLineArgsCommon {
+public abstract class CmdLineArgsCommon implements java.io.Serializable {
+
+    private static final long serialVersionUID = 141L;
 
     public static final String CLASSNAME = CmdLineArgsCommon.class.getName();
 
