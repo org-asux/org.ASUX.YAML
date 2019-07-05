@@ -52,7 +52,7 @@ public final class Enums
         SINGLE_QUOTED('\''),
         LITERAL( '|'),
         FOLDED('>'),
-        PLAIN(null),
+        PLAIN(null),   // <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!! 
         UNDEFINED('?');
 
         public static final String CLASSNAME = Enums.class.getName();
