@@ -71,10 +71,12 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     public static final String REGEXP_USEASINPUT = "^\\s*useAsInput\\s+("+ REGEXP_OBJECT_REFERENCE +"|"+ REGEXP_INLINEVALUE +")\\s*$";
     public static final String REGEXP_VERBOSE = "^\\s*verbose\\s+(on|off)\\s*$";
     public static final String REGEXP_PRINTDASH = "^\\s*print\\s+[-]\\s*$";
+    public static final String REGEXP_DEBUGDUMP = "^\\s*debug\\s+--dump\\s*$";
 
     //--------------------------------------------------------
 
-    public enum BatchCmdType { Cmd_MakeNewRoot, Cmd_SubBatch, Cmd_Foreach, Cmd_End, Cmd_SaveTo, Cmd_UseAsInput, Cmd_YAMLLibrary, Cmd_Verbose, Cmd_PrintDash, Cmd_Any };
+    public enum BatchCmdType { Cmd_MakeNewRoot, Cmd_SubBatch, Cmd_Foreach, Cmd_End, Cmd_SaveTo, Cmd_UseAsInput, Cmd_YAMLLibrary,
+                    Cmd_Verbose, Cmd_PrintDash, Cmd_DebugDump, Cmd_Any };
     private BatchCmdType whichCmd = BatchCmdType.Cmd_Any;
 
     private YAML_Libraries YAMLLibrary = YAML_Libraries.ASUXYAML_Library;
@@ -130,6 +132,8 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
+    // !!!!!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!!
+    // We cannot UNCOMMENT this method.  Because, BatchCmdProcessor will handle _ANY_ command NOT recognized here (example: aws.sdk, aws.cfn, ...)
     // /**
     //  *  <p>This method is used to simply tell whether 'current-line' matches the REGEXP patterns that execBuiltInCommand() will be processing 'internally' within this class</p>
     //  *  <p>In this class, those would be the REGEXP for 'print ...' and 'include @...'</p>
@@ -144,7 +148,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     //     if ( this.verbose ) System.out.println( HDR +"noprefix="+ noprefix );
     //     final boolean retb = noprefix.matches( REGEXP_YAMLLIBRARY ) || noprefix.matches( REGEXP_MKNEWROOT ) || noprefix.matches( REGEXP_BATCH )
     //                         || noprefix.matches( REGEXP_SAVETO ) || noprefix.matches( REGEXP_USEASINPUT ) || noprefix.matches( REGEXP_VERBOSE )
-    //                         || noprefix.matches( REGEXP_PRINTDASH );
+    //                         || noprefix.matches( REGEXP_PRINTDASH || noprefix.matches( REGEXP_DEBUGDUMP ) );
     //     !!!!!!!!! ATTENTION !!!!!!!!!!!! The above are NOT Built-In commands.  In execBuiltInCommand() method below, we only identify, we do NOT actually implement the command
     //     return false;
     // }
@@ -222,7 +226,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.YAMLLibrary = YAML_Libraries.fromString( yamlLibraryMatcher.group(1) ); // line.substring( yamlLibraryMatcher.start(), yamlLibraryMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t YAMLLibrary=[" + this.YAMLLibrary +"]" );
                 this.whichCmd = BatchCmdType.Cmd_YAMLLibrary;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
             Pattern makeNewRootPattern = Pattern.compile( REGEXP_MKNEWROOT );
@@ -232,7 +236,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.makeNewRoot = makeNewRootMatcher.group(1); // line.substring( makeNewRootMatcher.start(), makeNewRootMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t makeNewRoot=[" + this.makeNewRoot +"]" );
                 this.whichCmd = BatchCmdType.Cmd_MakeNewRoot;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
             Pattern batchPattern = Pattern.compile( REGEXP_BATCH );
@@ -242,19 +246,19 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.subBatchFile = batchMatcher.group(1); // line.substring( batchMatcher.start(), batchMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t batch=[" + this.subBatchFile +"]" );
                 this.whichCmd = BatchCmdType.Cmd_SubBatch;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
 			if ( line.equalsIgnoreCase( "foreach" ) ) {
 				this.whichCmd = BatchCmdType.Cmd_Foreach;
                 this.batchVerbose = false;  // I do Not want 'verbose on' to last OUTSIDE the loop/block in which it is specified.
-				return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+				return;
 			}
 
 			if ( line.equalsIgnoreCase("end") ) {
                 this.whichCmd = BatchCmdType.Cmd_End;
                 this.batchVerbose = false;  // I do Not want 'verbose on' to last OUTSIDE the loop/block in which it is specified.
-				return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+				return;
 			}
 
             Pattern saveToPattern = Pattern.compile( REGEXP_SAVETO );
@@ -264,7 +268,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.saveTo = saveToMatcher.group(1); // line.substring( saveToMatcher.start(), saveToMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t SaveTo=[" + this.saveTo +"]" );
                 this.whichCmd = BatchCmdType.Cmd_SaveTo;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
             Pattern useAsInputPattern = Pattern.compile( REGEXP_USEASINPUT );
@@ -274,7 +278,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.useAsInput = useAsInputMatcher.group(1); // line.substring( useAsInputMatcher.start(), useAsInputMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t useAsInput=[" + this.useAsInput +"]" );
                 this.whichCmd = BatchCmdType.Cmd_UseAsInput;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
             Pattern verbosePattern = Pattern.compile( REGEXP_VERBOSE );
@@ -284,7 +288,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 this.batchVerbose = "on".equals( verboseMatcher.group(1) ); // line.substring( verboseMatcher.start(), verboseMatcher.end() );
                 if ( this.verbose ) System.out.println( "\t verbose=[" + this.batchVerbose +"]" );
                 this.whichCmd = BatchCmdType.Cmd_Verbose;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
             }
 
             Pattern printDashPattern = Pattern.compile( REGEXP_PRINTDASH );
@@ -293,7 +297,16 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ printDashMatcher.group() +" starting at index "+  printDashMatcher.start() +" and ending at index "+ printDashMatcher.end() );    
                 if ( this.verbose ) System.out.println( "\t 'print -'" );
                 this.whichCmd = BatchCmdType.Cmd_PrintDash;
-                return; // unlike all super-classes, we only 'flag' batch-file commands that this class recognizes.  we do NOT process that line.  Hence return 'false'
+                return;
+            }
+
+            Pattern debugPattern = Pattern.compile( REGEXP_DEBUGDUMP );
+            Matcher debugMatcher    = debugPattern.matcher( line );
+            if (debugMatcher.find()) {
+                if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ debugMatcher.group() +" starting at index "+  debugMatcher.start() +" and ending at index "+ debugMatcher.end() );    
+                if ( this.verbose ) System.out.println( "\t 'print --debug'" );
+                this.whichCmd = BatchCmdType.Cmd_DebugDump;
+                return;
             }
 
             if ( this.verbose ) System.out.println( HDR +" Oh! oh! oh! oh! oh! oh! oh! oh! oh! Unknown command=("+ line +")\t"+ this.getState() );
