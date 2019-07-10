@@ -266,7 +266,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
             System.err.println( e +"\n\nERROR: Unexpected Serious Internal ERROR while processing Batch-"+ batchCmds.getState() +".\nERROR: See full-details by re-running command using --verbose cmdline option.");
         }
 
-        return getEmptyYAML();
+        return null;
     }
 
     //=======================================================================
