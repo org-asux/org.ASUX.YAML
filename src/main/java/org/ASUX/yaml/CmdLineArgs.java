@@ -51,26 +51,26 @@ import static org.junit.Assert.*;
  */
 public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
+    private static final long serialVersionUID = 333L;
     public static final String CLASSNAME = CmdLineArgs.class.getName();
+
     protected static final String YAMLPATH = "yamlpath";
     protected static final String DELIMITER = "delimiter";
     protected static final String YAMLLIB = "yamllibrary";
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    // These are for internal use - to help process user's commands
-    protected org.apache.commons.cli.Options options = new org.apache.commons.cli.Options();
-    protected org.apache.commons.cli.CommandLine    apacheCmdProcessor;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //These reflect the user's commandline options
     public String yamlRegExpStr = "undefined";
     public String yamlPatternDelimiter = ".";
 
-    public YAML_Libraries YAMLLibrary = YAML_Libraries.NodeImpl_Library; // some default value for now
+    public final Enums.CmdEnum cmdType;
+    protected final String cmdAsStr; // the string version of cmdType
 
-    public Enums.CmdEnum cmdType = Enums.CmdEnum.UNKNOWN;
-    protected String cmdAsStr; // the string version of cmdType
     protected int numArgs = -1;
+    protected String shortCmd = null;
+    protected String longCmd = null;
+    protected String cmdDesc = null;
+    protected String addlArgsDesc = null;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
@@ -88,116 +88,93 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
                             final int _numArgs, final String _addlArgsDesc )
                             throws Exception
     {
-        this.args.addAll( java.util.Arrays.asList(args) );
         this.cmdType = _cmdType;
         this.cmdAsStr = _longCmd;
-        this.numArgs = _numArgs;
 
-        //==================================
+        this.shortCmd = _shortCmd;
+        this.longCmd = _longCmd;
+        this.cmdDesc = _cmdDesc;
+        this.numArgs = _numArgs;
+        this.addlArgsDesc = _addlArgsDesc;
+
+        //------------------------------  !!!!!!!!!! ATTENTION below !!!!!!!!!!!
+        this.define(); // define is overridden in this class.
+        super.parse( args );
+    }
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    // /** @see org.ASUX.yaml.CmdLineArgsCommon#
+    //  */
+    // @Override
+    // public void define() {
+    //     super.define(); // this will automatically invoke defineAdditionalOptions();
+    //     super.defineInputOutputOptions();
+    // }
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    /**
+     *  <p>Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class.</p>
+     *  @param options a Non-Null instance of org.apache.commons.cli.Options
+     */
+    @Override
+    protected void defineAdditionalOptions()
+    {   final String HDR = CLASSNAME + ": defineAdditionalOptions(): ";
         Option opt;
 
-        super.defineCommonOptions( this.options );
+        //----------------------------------
+        super.defineInputOutputOptions();
 
         //----------------------------------
-        opt = new Option("zd", DELIMITER, false, "whether period/dot comma pipe or other character is the delimiter to use within the YAMLPATHPATTERN");
+        opt = CmdLineArgsCommon.genOption( "zd", DELIMITER, "whether period/dot comma pipe or other character is the delimiter to use within the YAMLPATHPATTERN",
+                                            1, "delimcharacter" );
         opt.setRequired(false);
-        opt.setArgs(1);
-        opt.setOptionalArg(false);
-        opt.setArgName("delimcharacter");
-        this.options.addOption(opt);
-
-        opt = new Option("zy", YAMLLIB, false, "only valid values are: "+ YAML_Libraries.list("\t") );
-        opt.setRequired(false);
-        opt.setArgs(1);
-        opt.setOptionalArg(false);
-        opt.setArgName("yamllibparam");
-        opt.setType(YAML_Libraries.class);
         this.options.addOption(opt);
 
         //----------------------------------
-        Option thisCmdOpt = new Option( _shortCmd, _longCmd, false, _cmdDesc );
-            thisCmdOpt.setRequired(true);
-            thisCmdOpt.setOptionalArg(false);
-            thisCmdOpt.setArgs( _numArgs );
-            if ( _numArgs > 1 )
-                thisCmdOpt.setValueSeparator(' ');
-            thisCmdOpt.setArgName( _addlArgsDesc );
+        opt = genOption( this.shortCmd, this.longCmd, this.cmdDesc, this.numArgs, this.addlArgsDesc);
+        opt.setRequired(true);
+        this.options.addOption( opt );
 
-        this.options.addOption( thisCmdOpt );
-
+        if ( this.verbose ) System.out.println( HDR +"completed function." );
     } // method
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /** Constructor.
-     *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
-     */
-    public final void parse( String[] _args ) throws Exception
-    {
-        final String HDR = CLASSNAME + ": parse():";
-        org.apache.commons.cli.CommandLineParser parser = new DefaultParser();
-        org.apache.commons.cli.HelpFormatter formatter = new HelpFormatter();
 
-        try {
-            // if ( ???.verbose ) ..
-            // what if the parse() statement below has issues.. ?  We can't expect to use this.apacheCmdProcessor.hasOption("verbose") 
-// System.err.print( CLASSNAME +" parse(): _args = "+ _args +"  >>>>>>>>>>>>> "); for( String s: _args) System.out.print(s+"\t");  System.out.println();
-// System.err.println( CLASSNAME +" parse(): this = "+ this.toString() );
-            this.apacheCmdProcessor = parser.parse( this.options, _args );
-
-            super.parseCommonOptions( this.apacheCmdProcessor );
-
-            this.yamlPatternDelimiter = this.apacheCmdProcessor.getOptionValue(DELIMITER);
-            if ( this.yamlPatternDelimiter == null || this.yamlPatternDelimiter.equals(".") )
-                this.yamlPatternDelimiter = YAMLPath.DEFAULTDELIMITER;
-
-            if ( this.apacheCmdProcessor.getOptionValue(YAMLLIB) != null )
-                this.YAMLLibrary = YAML_Libraries.fromString( this.apacheCmdProcessor.getOptionValue(YAMLLIB) );
-            else
-                this.YAMLLibrary = YAML_Libraries.SNAKEYAML_Library; // default.
-
-            assertTrue( this.apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
-
-            // following are defined to be optional arguments, but mandatory for a specific command (as you can see from the condition of the IF statements).
-            this.yamlRegExpStr = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr );
-
-            final String[] addlArgs = this.apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
-            if ( this.numArgs != addlArgs.length )
-                throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
-            this.moreParsing( _args );
-
-            // System.err.println( CLASSNAME +": "+this.toString());
-
-        } catch( MissingOptionException moe) {
-            moe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
-            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
-            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
-            throw new ParseException( moe.getMessage() );  // Specifically for use by Cmd.main()
-        } catch (ParseException pe) {
-            pe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
-            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
-            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
-            throw pe;
-        } catch( Exception e) {
-            e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            System.err.println( "\n\nERROR: @ "+ HDR +" Cmd-line options detected were:-\n"+ this.options );
-            formatter.printHelp( "\n\njava <jarL> "+CLASSNAME, this.options );
-            System.err.println( "\n\nERROR: failed to parse the command-line (see error-details above) " );
-            throw new ParseException( e.getMessage() );  // Specifically for use by Cmd.main()
-        }
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
-     *  <p>Subclasses to override this method to parse for additional options.</p>
-     *  <p>This method does nothing in this parent class</p>
-     *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
      */
-    protected void moreParsing( String[] _args ) throws Exception {
-        // Do nothing in this parent-class.
+    @Override
+    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
+                    throws MissingOptionException, ParseException, Exception
+    {
+        final String HDR = CLASSNAME + ": parseAdditionalOptions([]],..): ";
+
+        //-----------------------
+        super.parseInputOutputOptions( _args, _apacheCmdProcessor );
+
+        //-----------------------
+        this.yamlPatternDelimiter = _apacheCmdProcessor.getOptionValue(DELIMITER);
+        if ( this.yamlPatternDelimiter == null || this.yamlPatternDelimiter.equals(".") )
+            this.yamlPatternDelimiter = YAMLPath.DEFAULTDELIMITER;
+
+        assertTrue( _apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
+
+        //-----------------------
+        // following are defined to be optional arguments, but mandatory for a specific command (as you can see from the condition of the IF statements).
+        this.yamlRegExpStr = _apacheCmdProcessor.getOptionValue( this.cmdAsStr );
+
+        final String[] addlArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
+        if ( this.numArgs != addlArgs.length )
+            throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
+
+        //-----------------------
+        if ( this.verbose ) System.err.println( HDR +": "+this.toString());
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -218,6 +195,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
     public static void main(String[] args) {
         try{
             final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( args, Enums.CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
+            cmdLineArgsBase.define();
             cmdLineArgsBase.parse(args);
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit testing
