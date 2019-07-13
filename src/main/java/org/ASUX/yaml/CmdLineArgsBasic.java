@@ -66,7 +66,7 @@ public class CmdLineArgsBasic {
     public static final String YAMLLIB = "yamllibrary";
 
     //------------------------------------
-    final ArrayList<String> args = new ArrayList<>();
+    // final ArrayList<String> argsArrayList = new ArrayList<>();
     public boolean verbose = false;
 
     public YAML_Libraries YAMLLibrary = YAML_Libraries.ESOTERICSOFTWARE_Library;
@@ -80,24 +80,24 @@ public class CmdLineArgsBasic {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /**
-     * the command line arguments as-is
-     * @return instead of String[], you get an ArrayList (which is guaranteed to be NOT-Null)
-     */
-    final ArrayList<String> getArgs() {
-        @SuppressWarnings("unchecked")
-        final ArrayList<String> ret = (ArrayList<String>) this.args.clone();
-        return ret;
-    }
+    // /**
+    //  * the command line arguments as-is
+    //  * @return instead of String[], you get an ArrayList (which is guaranteed to be NOT-Null)
+    //  */
+    // final ArrayList<String> getArgs() {
+    //     @SuppressWarnings("unchecked")
+    //     final ArrayList<String> ret = (ArrayList<String>) this.argsArrayList.clone();
+    //     return ret;
+    // }
 
     //------------------------------------
-    /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
-     */
-    public String toString() {
-        // this.args.forEach(s -> System.out.println(s+"\t") );
-        return this.args.toString();
-        // return "verbose="+verbose;
-    }
+    // /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
+    //  */
+    // public String toString() {
+    //     // this.argsArrayList.forEach(s -> System.out.println(s+"\t") );
+    //     return this.argsArrayList.toString();
+    //     // return "verbose="+verbose;
+    // }
 
     //------------------------------------
     /**
@@ -118,22 +118,17 @@ public class CmdLineArgsBasic {
      */
     public CmdLineArgsBasic(String[] args) throws Exception
     {
-        this.args.addAll( java.util.Arrays.asList(args) );
+        // this.argsArrayList.addAll( java.util.Arrays.asList(args) );
 
         //----------------------------------
         Options options = new Options();
         Option opt;
 
-        opt= new Option("v", "verbose", false, "Show debug output");
-        opt.setRequired(false);
-        options.addOption(opt);
-
         //----------------------------------
-        opt = new Option("zy", YAMLLIB, false, "only valid values are: "+ YAML_Libraries.list("\t") );
+        CmdLineArgsCommon.addSimpleOption( options, "v",  "verbose", "Show debug output" );
+
+        opt = CmdLineArgsCommon.genOption( "zy", YAMLLIB, "only valid values are: "+ YAML_Libraries.list("\t"), 1, "yamllibparam" );
         opt.setRequired(false);
-        opt.setArgs(1);
-        opt.setOptionalArg(false);
-        opt.setArgName("yamllibparam");
         options.addOption(opt);
 
         //----------------------------------
@@ -170,7 +165,7 @@ public class CmdLineArgsBasic {
 
             // if ( ???.verbose ) ..
             // what if the parse() statement below has issues.. ?  We can't expect to use this.apacheCmd.hasOption("verbose") 
-// System.err.print( CLASSNAME +" parse(): _args = "+ args +"  >>>>>>>>>>>>> "); for( String s: args) System.out.print(s+"\t");  System.out.println();
+// System.err.print( CLASSNAME +" parse(): _args = "+ args +"  >>>>>>>>>>>>> "); for( String s: argsArrayList) System.out.print(s+"\t");  System.out.println();
 // System.err.println( CLASSNAME +" parse(): this = "+ this.toString() );
             cmd = parser.parse( options, args, true ); //3rd param: boolean stopAtNonOption
 
