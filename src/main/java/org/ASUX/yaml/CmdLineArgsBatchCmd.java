@@ -49,6 +49,8 @@ import org.apache.commons.cli.*;
  */
 public class CmdLineArgsBatchCmd extends CmdLineArgs {
 
+    private static final long serialVersionUID = 334L;
+
     public static final String CLASSNAME = CmdLineArgsBatchCmd.class.getName();
 
     public String batchFilePath = null;       // Required for 'batch' command
@@ -73,15 +75,20 @@ public class CmdLineArgsBatchCmd extends CmdLineArgs {
     } // method
 
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
     /**
-     *  <p>Subclasses to override this method to parse for additional options.</p>
-     *  <p>This method does nothing in this parent class</p>
-     *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
      */
-    protected void moreParsing( String[] _args ) throws Exception {
-        this.batchFilePath = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.BATCHCMD[1] );
+    @Override
+    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
+                    throws MissingOptionException, ParseException, Exception
+    {
+        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
+
+        this.batchFilePath = _apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.BATCHCMD[1] );
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

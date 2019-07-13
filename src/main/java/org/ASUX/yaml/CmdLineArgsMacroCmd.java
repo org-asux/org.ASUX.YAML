@@ -72,21 +72,26 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
         super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
     } // method
 
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
-     *  <p>Subclasses to override this method to parse for additional options.</p>
-     *  <p>This method does nothing in this parent class</p>
-     *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
      */
-    protected void moreParsing( String[] _args ) throws Exception {
-        this.propertiesFilePath = this.apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROYAMLCMD[1] );
+    @Override
+    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
+                    throws MissingOptionException, ParseException, Exception
+    {
+        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
+
+        this.propertiesFilePath = _apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROYAMLCMD[1] );
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
+    @Override
     public String toString() {
         return super.toString() +" propertiesFilePath="+propertiesFilePath;
     }

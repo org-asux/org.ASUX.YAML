@@ -72,16 +72,20 @@ public class CmdLineArgsTableCmd extends CmdLineArgs {
         super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
     } // method
 
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
-     *  <p>Subclasses to override this method to parse for additional options.</p>
-     *  <p>This method does nothing in this parent class</p>
-     *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
      */
-    protected void moreParsing( String[] _args ) throws Exception {
-        final String[] tableArgs = this.apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.TABLECMD[1] );
+    @Override
+    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
+                    throws MissingOptionException, ParseException, Exception
+    {
+        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
+
+        final String[] tableArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.TABLECMD[1] );
         // because we set .setArgs(2) above.. you can get the values for:- tableArgs[0] and tableArgs[1].
         this.yamlRegExpStr = tableArgs[0]; // 1st of the 2 arguments for table cmd.
         this.tableColumns = tableArgs[1];
@@ -90,6 +94,7 @@ public class CmdLineArgsTableCmd extends CmdLineArgs {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
+    @Override
     public String toString() {
         return super.toString() +" tableColumns="+tableColumns;
     }
