@@ -85,7 +85,13 @@ public abstract class BatchCmdProcessor<T extends Object> {
     /**
      * @see org.ASUX.yaml.Enums
      */
-    public Enums.ScalarStyle quoteType;
+    public final Enums.ScalarStyle quoteType;
+
+
+    /**
+     * True if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
+     */
+    public final boolean offline;
 
     protected int runcount = 0;
     protected java.util.Date startTime = null;
@@ -99,12 +105,14 @@ public abstract class BatchCmdProcessor<T extends Object> {
     /** <p>The only constructor - public/private/protected</p>
      *  @param _verbose Whether you want deluge of debug-output onto System.out.
      *  @param _showStats Whether you want a final summary onto console / System.out
+     *  @param _offline true if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
      *  @param _quoteType one the values as defined in {@link org.ASUX.yaml.Enums} Enummeration
      */
-    public BatchCmdProcessor( final boolean _verbose, final boolean _showStats, final Enums.ScalarStyle _quoteType ) {
+    public BatchCmdProcessor( final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
         this.verbose = _verbose;
         this.showStats = _showStats;
         this.quoteType = _quoteType;
+        this.offline = _offline;
 
         // this.allProps.put( FOREACH_PROPERTIES, new Properties() );
         // this.allProps = org.ASUX.common.OSScriptFileScanner.initProperties( this.allProps );
@@ -551,6 +559,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
 
         final boolean isYAMLCmd = cmdStrNM.equals("yaml");
         final boolean isAWSCmd = cmdStrNM.equals("aws.sdk");
+        final boolean isAWSCFNCmd = cmdStrNM.equals("aws.cfn");
 
         //--------------------------------
         final String completeCmdLine = _batchCmds.currentLine() + " -i - -o -"; // Adding the '-i' and '-o' is harmless, but required because CmdLineArgs.java will barf otherwise (as CmdLineArgs.java thinks it's being run on commandline by a user)
@@ -570,6 +579,8 @@ public abstract class BatchCmdProcessor<T extends Object> {
             cmdArgsClassNameStr = "org.ASUX.YAML.NodeImpl.CmdLineArgs";
         } else if ( isAWSCmd ) {
             cmdArgsClassNameStr = "org.ASUX.AWSSDK.CmdLineArgsAWS";
+        } else if ( isAWSCFNCmd ) {
+            cmdArgsClassNameStr = "org.ASUX.AWS.CFN.CmdLineArgs";
         } else {
             throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
         }
@@ -593,11 +604,13 @@ public abstract class BatchCmdProcessor<T extends Object> {
 
             newCmdLineArgsObj = (org.ASUX.yaml.CmdLineArgsCommon) oo2;
 
-            newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-            newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
+            CmdLineArgsCommon.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+            // newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+            // newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
+            // newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
 
-            if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
-                newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+            // if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
+            //     newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
 
             if ( this.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj.toString() );
 
