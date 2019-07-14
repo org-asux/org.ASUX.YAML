@@ -101,7 +101,7 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
     //=================================================================================
 
     /** <p>This method is the 2nd of the 3 steps to using this class.</p>
-     *  <p>Subclass should Not override this, but can extend this method (for example: 'adding' {@link #defineInputOutputOptions(Options)}).</p>
+     *  <p>Subclass should Not override this, but can extend this method (for example: 'adding' {@link #defineInputOutputOptions()}).</p>
      */
     public void define() {
         this.defineCommonOptions();
@@ -135,7 +135,6 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
 
     /**
      * Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
-     * @param options a Non-Null instance
      */
     protected void defineCommonOptions()
     {   final String HDR = CLASSNAME + ": defineCommonOptions(): ";
@@ -171,7 +170,6 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
 
     /**
      *  <p>Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class.</p>
-     *  @param options a Non-Null instance of org.apache.commons.cli.Options
      */
     protected abstract void defineAdditionalOptions();
 
@@ -181,7 +179,6 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
 
     /**
      * Add cmd-line argument definitions (using apache.commons.cli.Options) for 2 specific instance-variables defined in this class: 
-     * @param options a Non-Null instance
      */
     protected void defineInputOutputOptions()
     {   final String HDR = CLASSNAME + ": defineInputOutputOptions(): ";
@@ -211,9 +208,10 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /** <p>This method is the 3rd/final of the 3 steps to using this class.</p>
-     *  <p>After {@link #}, this method allows to detect what exactly was entered by the user on the command line. </p>
+    /** <p>This method is part of the 3rd/final of the 3 steps to using this class.</p>
+     *  <p>The 3rd/final step is composed of the following sequence: {@link #parse(String[])} in turn invokes this method, followed by {@link #parseAdditionalOptions(String[], org.apache.commons.cli.CommandLine)}</p>
      *  @param _apacheCmdProcessor a Non-null instance
+     *  @throws Exception TBD by subclasses
      */
     protected void parseCommonOptions( final org.apache.commons.cli.CommandLine _apacheCmdProcessor ) throws Exception
     {
@@ -254,11 +252,13 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
     /**
      *  <p>Subclasses to override this method - - to parse for additional options.</p>
      *  <p>FYI: This method does nothing in this parent class, as it's a placeholder for any subclasses.</p>
+     *  <p>This method is part of the 3rd/final of the 3 steps to using this class.</p>
+     *  <p>The 3rd/final step is composed of the following sequence: {@link #parse(String[])} in turn invokes {@link #parseCommonOptions(org.apache.commons.cli.CommandLine)}, followed by this.</p>
      *  @param _args command line argument array - as received as-is from main().
      *  @param _apacheCmdProcessor a Non-Null instance of org.apache.commons.cli.CommandLine
-     *  @throws MissingOptionException if user has Not provided the required cmd-line options/arguments as defined within {@link #defineCommonOptions(Options)} & {@link #defineInputOutputOptions(Options)}
-     *  @throws ParseException if the additional-arguments in the user-provided commands line, do Not match the option-definitions within {@link #defineCommonOptions(Options)} & {@link #defineInputOutputOptions(Options)}
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @throws MissingOptionException if user has Not provided the required cmd-line options/arguments as defined within {@link #defineCommonOptions()} and {@link #defineInputOutputOptions()}
+     *  @throws ParseException if the additional-arguments in the user-provided commands line, do Not match the option-definitions within {@link #defineCommonOptions()} and {@link #defineInputOutputOptions()}
+     *  @throws Exception tbd by subclasses
      */
     protected abstract void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
                     throws MissingOptionException, ParseException, Exception;
@@ -269,8 +269,10 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
 
     /**
      *  <p>This method is to be ONLY invoked within subclasses' overridden implementation of {@link #parseAdditionalOptions(String[], org.apache.commons.cli.CommandLine)}</p>
-     *  <p>This method is to be used by all Sub-classes - SPECIFICALLY for the 2 common instance-variables ({@link #inputFilePath {@link #outputFilePath}) defined in this claass</p>
-     *  <p>After {@link #defineCommonOptions(Options)}, this method allows to detect what exactly was entered by the user on the command line. </p>
+     *  <p>This method is to be use by any Sub-classes (interested in using this 'pre-implemeted' code) - SPECIFICALLY for the 2 common instance-variables ({@link #inputFilePath} {@link #outputFilePath}) defined in this claass</p>
+     *  <p>This method is part of the 3rd/final of the 3 steps to using this class.</p>
+     *  <p>The 3rd/final step is composed of the following sequence: {@link #parse(String[])} in turn invokes {@link #parseCommonOptions(org.apache.commons.cli.CommandLine)}, followed by {@link #parseAdditionalOptions(String[], org.apache.commons.cli.CommandLine)}</p>
+     *  <p>Recommended that thu subclasses override {@link #parseAdditionalOptions(String[], org.apache.commons.cli.CommandLine)} method, to explicity invoke this method. </p>
      *  @param _args command line argument array - as received as-is from main().
      *  @param _apacheCmdProcessor a Non-null instance
      *  @see #parseCommonOptions(org.apache.commons.cli.CommandLine)
@@ -289,7 +291,7 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
 
     /** Constructor.
      *  @param _args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+     *  @throws Exception either MissingOptionException, ParseException or other (runtime) exception, when parsing the commandline.
      */
     public final void parse( String[] _args ) throws Exception
     {
@@ -378,6 +380,38 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
+
+    /**
+     * Given the original object of this class, copy these attributes to the 2nd object of this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
+     * @param _orig a NotNull reference
+     * @param _copy a NotNull reference
+     */
+    public static void copyBasicFlags( final CmdLineArgsCommon _orig, final CmdLineArgsCommon _copy ) {
+        _copy.verbose   = _copy.verbose || _orig.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+        _copy.showStats = _copy.showStats || _orig.showStats;
+        _copy.offline = _copy.offline || _orig.offline;
+
+        if ( _copy.quoteType == Enums.ScalarStyle.UNDEFINED )
+            _copy.quoteType = _orig.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+    }
+
+    /**
+     * Copy these attributes to the provided object of this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
+     * @param _copy a NotNull reference
+     * @param _verbose  {@link #verbose}
+     * @param _showStats {@link #showStats}
+     * @param _offline {@link #offline}
+     * @param _quoteType {@link #quoteType}
+     */
+    public static void copyBasicFlags( final CmdLineArgsCommon _copy,
+                            final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
+        _copy.verbose   = _copy.verbose || _verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+        _copy.showStats = _copy.showStats || _showStats;
+        _copy.offline = _copy.offline || _offline;
+
+        if ( _copy.quoteType == Enums.ScalarStyle.UNDEFINED )
+            _copy.quoteType = _quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+    }
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
