@@ -120,7 +120,6 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
     /**
      *  <p>Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class.</p>
-     *  @param options a Non-Null instance of org.apache.commons.cli.Options
      */
     @Override
     protected void defineAdditionalOptions()
