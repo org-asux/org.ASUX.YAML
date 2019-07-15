@@ -51,11 +51,10 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
 
     public static final String CLASSNAME = CmdLineArgsReplaceCmd.class.getName();
 
-    public String replaceFilePath = null;       // optional argument, but required for 'replace' command
+    public String replaceFilePath = "null-SARMA";       // optional argument, but required for 'replace' command
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** Constructor.
-     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -64,12 +63,13 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgsReplaceCmd( final String[] args, final Enums.CmdEnum _cmdType,
+    public CmdLineArgsReplaceCmd( final Enums.CmdEnum _cmdType,
                                 final String _shortCmd, final String _longCmd, final String _cmdDesc,
                                 final int _numArgs, final String _addlArgsDesc  )
                                 throws Exception
     {
-        super( args, _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
+        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
+        final String HDR = CLASSNAME + ": constructor(<args>,"+ _cmdType +",_,"+ _longCmd +",_,"+ _numArgs +",_): ";
     } // method
 
 
@@ -85,7 +85,6 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
                     throws MissingOptionException, ParseException, Exception
     {
         super.parseAdditionalOptions(_args, _apacheCmdProcessor);
-
         final String[] replaceArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
         // because we set .setArgs(2) above.. you can get the values for:- replaceArgs[0] and replaceArgs[1].
         this.yamlRegExpStr = replaceArgs[0]; // 1st of the 2 arguments for replace cmd.
@@ -103,9 +102,13 @@ public class CmdLineArgsReplaceCmd extends CmdLineArgs {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
     public static void main(String[] args) {
+        final String HDR = CLASSNAME + ": main(args[]): ";
         try{
-            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( args, Enums.CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            final CmdLineArgsReplaceCmd cla = new CmdLineArgsReplaceCmd( Enums.CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
+            cla.define();
             cla.parse(args);
+            System.out.println(cla);
+            System.err.println( HDR +"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ cla.replaceFilePath="+ cla.replaceFilePath );
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit-testing
             System.exit(1);
