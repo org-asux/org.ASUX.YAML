@@ -74,7 +74,6 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
-     *  @param args command line argument array - as received as-is from main().
      *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
      *  @param _shortCmd example "r" "zd"
      *  @param _longCmd example "read" "table"
@@ -83,11 +82,12 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
      *  @param _addlArgsDesc what the HELP command shows about these additional args
      *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
      */
-    public CmdLineArgs( final String[] args, final Enums.CmdEnum _cmdType,
+    public CmdLineArgs( final Enums.CmdEnum _cmdType,
                             final String _shortCmd, final String _longCmd, final String _cmdDesc,
                             final int _numArgs, final String _addlArgsDesc )
                             throws Exception
     {
+        // final String HDR = CLASSNAME + ": constructor(<args>,"+ _cmdType +",_,"+ _longCmd +",_,"+ _numArgs +",_): ";
         this.cmdType = _cmdType;
         this.cmdAsStr = _longCmd;
 
@@ -96,10 +96,6 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
         this.cmdDesc = _cmdDesc;
         this.numArgs = _numArgs;
         this.addlArgsDesc = _addlArgsDesc;
-
-        //------------------------------  !!!!!!!!!! ATTENTION below !!!!!!!!!!!
-        this.define(); // define is overridden in this class.
-        super.parse( args );
     }
 
     //=================================================================================
@@ -165,14 +161,13 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
         assertTrue( _apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
 
         //-----------------------
-        // following are defined to be optional arguments, but mandatory for a specific command (as you can see from the condition of the IF statements).
-        this.yamlRegExpStr = _apacheCmdProcessor.getOptionValue( this.cmdAsStr );
-
         final String[] addlArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
         if ( this.numArgs != addlArgs.length )
             throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
 
-        //-----------------------
+        this.yamlRegExpStr = _apacheCmdProcessor.getOptionValue( this.cmdAsStr );
+
+            //-----------------------
         if ( this.verbose ) System.err.println( HDR +": "+this.toString());
     }
 
@@ -192,10 +187,12 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     // For unit-testing purposes only
     public static void main(String[] args) {
+        final String HDR = CLASSNAME + ": main(args[]): ";
         try{
-            final CmdLineArgs cmdLineArgsBase = new CmdLineArgs( args, Enums.CmdEnum.READ, CmdLineArgsBasic.READCMD[0], CmdLineArgsBasic.READCMD[1], CmdLineArgsBasic.READCMD[2], 1, "YAMLPattern" );
-            cmdLineArgsBase.define();
-            cmdLineArgsBase.parse(args);
+            final CmdLineArgs cmdLineArgs = new CmdLineArgs( Enums.CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <filenae" );
+            cmdLineArgs.define();
+            cmdLineArgs.parse(args);
+            System.out.println( HDR + cmdLineArgs );
         } catch( Exception e) {
             e.printStackTrace(System.err); // main() for unit testing
             System.exit(1);
