@@ -49,8 +49,9 @@ import org.apache.commons.cli.*;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgsBasic {
+public class CmdLineArgsBasic extends org.ASUX.yaml.CmdLineArgsCommon {
 
+    private static final long serialVersionUID = 330L;
     public static final String CLASSNAME = CmdLineArgsBasic.class.getName();
 
     public static final String[] READCMD = { "r", "read", "output all YAML-elements that match" };
@@ -63,41 +64,17 @@ public class CmdLineArgsBasic {
     public static final String[] MACROYAMLCMD = { "m", "macroyaml", "run valid-proper YAML-input (file) thru a MACRO processor searching for ${ASUX::__} and replacing __ with values from Properties file" };
     public static final String[] BATCHCMD = { "b", "batch", "run a batch of commands, which are listed in the <batchfile>" };
 
-    public static final String YAMLLIB = "yamllibrary";
+    protected static final String DELIMITER = "delimiter";
 
     //------------------------------------
-    // final ArrayList<String> argsArrayList = new ArrayList<>();
-    public boolean verbose = false;
-
-    public YAML_Libraries YAMLLibrary = YAML_Libraries.ESOTERICSOFTWARE_Library;
-
-    //------------------------------------
-    private final CmdLineArgs cmdLineArgs;
+    private CmdLineArgs cmdLineArgs;
 
     public Enums.CmdEnum cmdType = Enums.CmdEnum.UNKNOWN;
+    public String yamlPatternDelimiter = ".";
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
-
-    // /**
-    //  * the command line arguments as-is
-    //  * @return instead of String[], you get an ArrayList (which is guaranteed to be NOT-Null)
-    //  */
-    // final ArrayList<String> getArgs() {
-    //     @SuppressWarnings("unchecked")
-    //     final ArrayList<String> ret = (ArrayList<String>) this.argsArrayList.clone();
-    //     return ret;
-    // }
-
-    //------------------------------------
-    // /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
-    //  */
-    // public String toString() {
-    //     // this.argsArrayList.forEach(s -> System.out.println(s+"\t") );
-    //     return this.argsArrayList.toString();
-    //     // return "verbose="+verbose;
-    // }
 
     //------------------------------------
     /**
@@ -112,24 +89,14 @@ public class CmdLineArgsBasic {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /** Constructor.
-     *  @param args command line argument array - as received as-is from main().
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
+    /**
+     *  <p>Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class.</p>
      */
-    public CmdLineArgsBasic(String[] args) throws Exception
-    {
-        // this.argsArrayList.addAll( java.util.Arrays.asList(args) );
+    @Override
+    protected void defineAdditionalOptions()
+    {   final String HDR = CLASSNAME + ": defineAdditionalOptions(): ";
 
-        //----------------------------------
-        Options options = new Options();
         Option opt;
-
-        //----------------------------------
-        CmdLineArgsCommon.addSimpleOption( options, "v",  "verbose", "Show debug output" );
-
-        opt = CmdLineArgsCommon.genOption( "zy", YAMLLIB, "only valid values are: "+ YAML_Libraries.list("\t"), 1, "yamllibparam" );
-        opt.setRequired(false);
-        options.addOption(opt);
 
         //----------------------------------
         OptionGroup grp = new OptionGroup();
@@ -151,107 +118,102 @@ public class CmdLineArgsBasic {
         grp.addOption(batchCmdOpt);
         grp.setRequired(true);
 
-        options.addOptionGroup(grp);
+        this.options.addOptionGroup(grp);
 
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        // temp variable, to help set a 'final' class variable
-        org.ASUX.yaml.CmdLineArgs cla = null;
+        //----------------------------------
+        opt = CmdLineArgsCommon.genOption( "zd", DELIMITER, "whether period/dot comma pipe or other character is the delimiter to use within the YAMLPATHPATTERN",
+                                            1, "delimcharacter" );
+        opt.setRequired(false);
+        this.options.addOption(opt);
 
-        org.apache.commons.cli.CommandLineParser parser = new DefaultParser();
-        org.apache.commons.cli.HelpFormatter formatter = new HelpFormatter();
-        org.apache.commons.cli.CommandLine cmd;
+    } // method
 
-        try {
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
 
-            // if ( ???.verbose ) ..
-            // what if the parse() statement below has issues.. ?  We can't expect to use this.apacheCmd.hasOption("verbose") 
-// System.err.print( CLASSNAME +" parse(): _args = "+ args +"  >>>>>>>>>>>>> "); for( String s: argsArrayList) System.out.print(s+"\t");  System.out.println();
-// System.err.println( CLASSNAME +" parse(): this = "+ this.toString() );
-            cmd = parser.parse( options, args, true ); //3rd param: boolean stopAtNonOption
+    /**
+     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
+     */
+    @Override
+    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
+                    throws MissingOptionException, ParseException, Exception
+    {
+        final String HDR = CLASSNAME + ": parseAdditionalOptions([]],..): ";
 
-            this.verbose = cmd.hasOption("verbose");
+        //-----------------------
+        super.parseInputOutputOptions( _args, _apacheCmdProcessor );
 
-            if ( cmd.getOptionValue(YAMLLIB) != null )
-                this.YAMLLibrary = YAML_Libraries.fromString( cmd.getOptionValue(YAMLLIB) );
-            else
-                this.YAMLLibrary = YAML_Libraries.SNAKEYAML_Library; // default.
+        //-----------------------
+        this.yamlPatternDelimiter = _apacheCmdProcessor.getOptionValue(DELIMITER);
+        if ( this.yamlPatternDelimiter == null || this.yamlPatternDelimiter.equals(".") )
+            this.yamlPatternDelimiter = YAMLPath.DEFAULTDELIMITER;
 
-            //----------------------------------------------
-            if ( cmd.hasOption(READCMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.READ;
-                // this.yamlRegExpStr = cmd.getOptionValue(READCMD);
-                cla = new CmdLineArgs( args, this.cmdType, READCMD[0], READCMD[1], READCMD[2], 1, "YAMLPattern" );
-            }
-            if ( cmd.hasOption(LISTCMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.LIST;
-                cla = new CmdLineArgs( args, this.cmdType, LISTCMD[0], LISTCMD[1], LISTCMD[2], 1, "YAMLPattern" );
-            }
-            if ( cmd.hasOption(INSERTCMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.INSERT;
-                final CmdLineArgsInsertCmd insertCmdLineArgs = new CmdLineArgsInsertCmd( args, this.cmdType, INSERTCMD[0], INSERTCMD[1], INSERTCMD[2], 2, "YAMLPattern> <newValue" );
-                cla = insertCmdLineArgs;
-            }
-            if ( cmd.hasOption(DELETECMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.DELETE;
-                cla = new CmdLineArgs( args, this.cmdType, DELETECMD[0], DELETECMD[1], DELETECMD[2], 1, "YAMLPattern" );
-            }
-            if ( cmd.hasOption(REPLACECMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.REPLACE;
-                final CmdLineArgsReplaceCmd replaceCmdLineArgs = new CmdLineArgsReplaceCmd( args, this.cmdType, REPLACECMD[0], REPLACECMD[1], REPLACECMD[2], 2, "YAMLPattern> <newValue" );
-                cla = replaceCmdLineArgs;
-            }
-            if ( cmd.hasOption(TABLECMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.TABLE;
-                final CmdLineArgsTableCmd tableCmdLineArgs = new CmdLineArgsTableCmd( args, this.cmdType, TABLECMD[0], TABLECMD[1], TABLECMD[2], 2, "YAMLPattern> <column,column" );
-                cla = tableCmdLineArgs;
-            }
-            if ( cmd.hasOption(MACROYAMLCMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.MACROYAML;
-                final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( args, this.cmdType, MACROYAMLCMD[0], MACROYAMLCMD[1], MACROYAMLCMD[2], 1, "propertiesFile" );
-                cla = macroCmdLineArgs;
-            }
-            if ( cmd.hasOption(BATCHCMD[1]) ) {
-                this.cmdType = Enums.CmdEnum.BATCH;
-                final CmdLineArgsBatchCmd batchCmdLineArgs = new CmdLineArgsBatchCmd( args, this.cmdType, BATCHCMD[0], BATCHCMD[1], BATCHCMD[2], 1, "batchFile" );
-                cla = batchCmdLineArgs;
-            }
-
-        } catch (ParseException e) {
-            e.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            formatter.printHelp( "\njava <jarL> "+CLASSNAME, options );
-            System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ options );
-            throw e;
-        }
         //----------------------------------------------
-        // let the subclassses do the parsing based on individual command's needs
-        try {
-            this.cmdLineArgs = cla;
-            this.cmdLineArgs.parse( args );
-        } catch( MissingOptionException moe) {
-            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
-            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
-            // Just make sure to convert all Exceptions into a ParseException()
-            throw new ParseException( moe.getMessage() ); // Specifically for use by Cmd.main()
-        } catch (ParseException pe) {
-            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
-            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
-            // pe.printStackTrace(System.err); // Too Serious an Error.  We do NOT have the benefit of '--verbose',as this implies a FAILURE to parse command line.
-            // formatter.printHelp( "\njava <jarL> "+CLASSNAME, options ); <--- Let the sub-classes show the 'help'
-            // System.err.println( "\n\n"+ CLASSNAME +" parse(): failed to parse the command-line: "+ options );
-            throw pe; // Specifically for use by Cmd.main()
-        } catch( Exception e) {
-            // ATTENTION: If subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
-            // so.. do NOTHING in this class (CmdLineArgsBasic.java)
-            // Just make sure to convert all Exceptions into a ParseException()
-            throw new ParseException( e.getMessage()); // Specifically for use by Cmd.main()
+
+        if ( _apacheCmdProcessor.hasOption(READCMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.READ;
+            this.cmdLineArgs = new CmdLineArgs( this.cmdType, READCMD[0], READCMD[1], READCMD[2], 1, "YAMLPattern" );
         }
+        if ( _apacheCmdProcessor.hasOption(LISTCMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.LIST;
+            this.cmdLineArgs = new CmdLineArgs( this.cmdType, LISTCMD[0], LISTCMD[1], LISTCMD[2], 1, "YAMLPattern" );
+        }
+        if ( _apacheCmdProcessor.hasOption(INSERTCMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.INSERT;
+            final CmdLineArgsInsertCmd insertCmdLineArgs = new CmdLineArgsInsertCmd( this.cmdType, INSERTCMD[0], INSERTCMD[1], INSERTCMD[2], 2, "YAMLPattern> <newValue" );
+            this.cmdLineArgs = insertCmdLineArgs;
+        }
+        if ( _apacheCmdProcessor.hasOption(DELETECMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.DELETE;
+            this.cmdLineArgs = new CmdLineArgs( this.cmdType, DELETECMD[0], DELETECMD[1], DELETECMD[2], 1, "YAMLPattern" );
+        }
+        if ( _apacheCmdProcessor.hasOption(REPLACECMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.REPLACE;
+            final CmdLineArgsReplaceCmd replaceCmdLineArgs = new CmdLineArgsReplaceCmd( this.cmdType, REPLACECMD[0], REPLACECMD[1], REPLACECMD[2], 2, "YAMLPattern> <newValue" );
+            this.cmdLineArgs = replaceCmdLineArgs;
+        }
+        if ( _apacheCmdProcessor.hasOption(TABLECMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.TABLE;
+            final CmdLineArgsTableCmd tableCmdLineArgs = new CmdLineArgsTableCmd( this.cmdType, TABLECMD[0], TABLECMD[1], TABLECMD[2], 2, "YAMLPattern> <column,column" );
+            this.cmdLineArgs = tableCmdLineArgs;
+        }
+        if ( _apacheCmdProcessor.hasOption(MACROYAMLCMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.MACROYAML;
+            final CmdLineArgsMacroCmd macroCmdLineArgs = new CmdLineArgsMacroCmd( this.cmdType, MACROYAMLCMD[0], MACROYAMLCMD[1], MACROYAMLCMD[2], 1, "propertiesFile" );
+            this.cmdLineArgs = macroCmdLineArgs;
+        }
+        if ( _apacheCmdProcessor.hasOption(BATCHCMD[1]) ) {
+            this.cmdType = Enums.CmdEnum.BATCH;
+            final CmdLineArgsBatchCmd batchCmdLineArgs = new CmdLineArgsBatchCmd( this.cmdType, BATCHCMD[0], BATCHCMD[1], BATCHCMD[2], 1, "batchFile" );
+            this.cmdLineArgs = batchCmdLineArgs;
+        }
+        this.cmdLineArgs.define(); // define is overridden in this class.
+        this.cmdLineArgs.parse( _args );
+
+        //-----------------------
+        if ( this.verbose ) System.err.println( HDR +": "+this.toString());
     }
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-    // For unit-testing purposes only
-//    public static void main(String[] args) {
-//        new CmdLineArgsBasic(args);
-//    }
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
+    /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
+     */
+    @Override
+    public String toString() {
+        return
+        super.toString()
+        +" yamlPatternDelimiter="+ this.yamlPatternDelimiter
+        +" Cmd-Type="+this.cmdType
+        ;
+    }
+
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
 
 }
