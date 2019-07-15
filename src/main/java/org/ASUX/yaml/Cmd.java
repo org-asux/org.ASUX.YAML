@@ -98,7 +98,10 @@ public class Cmd {
         final java.io.StringWriter stdoutSurrogate = new java.io.StringWriter();
 
         try {
-            cmdLineArgsBasic = new CmdLineArgsBasic( args );
+            cmdLineArgsBasic = new CmdLineArgsBasic();
+            cmdLineArgsBasic.define();
+            cmdLineArgsBasic.parse( args );
+
             if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"arguments ="+ cmdLineArgsBasic );
 
             String classNameStr = null;
