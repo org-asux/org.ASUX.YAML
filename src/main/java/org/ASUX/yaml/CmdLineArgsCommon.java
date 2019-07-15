@@ -143,7 +143,7 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
         //----------------------------------
         CmdLineArgsCommon.addSimpleOption( this.options, "v",  "verbose", "Show debug output" );
         CmdLineArgsCommon.addSimpleOption( this.options, "vs", "showStats", "Show - at end output - a summary of how many matches happened, or entries were affected" );
-        CmdLineArgsCommon.addSimpleOption( this.options, "zzz", OFFLINE, "whether internet is turned off (or, you want to pretend there's no internet) " );
+        CmdLineArgsCommon.addSimpleOption( this.options, "zzz", OFFLINE, "set internet-connection to off (or, you want to pretend there's no internet) " );
 
         //----------------------------------
         OptionGroup grp2        = new OptionGroup();
@@ -221,14 +221,6 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
         this.showStats = _apacheCmdProcessor.hasOption("showStats");
 
         this.offline = _apacheCmdProcessor.hasOption(OFFLINE);
-
-        //-------------------------------------------
-        if ( _apacheCmdProcessor.hasOption( NOQUOTE ) ) this.quoteType = Enums.ScalarStyle.PLAIN;
-        if ( _apacheCmdProcessor.hasOption( SINGLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.SINGLE_QUOTED;
-        if ( _apacheCmdProcessor.hasOption( DOUBLEQUOTE ) ) this.quoteType = Enums.ScalarStyle.DOUBLE_QUOTED;
-        if ( this.verbose ) System.out.println("this.quoteType = "+this.quoteType.toString());
-        // DO NOT do this --> assertTrue( this.quoteType != Enums.ScalarStyle.UNDEFINED );
-        // We now __actually use__ UNDEFINED to represent the fact that the end-user did NOT provide anything on the commandline (whether no-quote, single or double)
 
         //-------------------------------------------
         if ( _apacheCmdProcessor.hasOption( NOQUOTE     ) ) this.quoteType = org.ASUX.yaml.Enums.ScalarStyle.PLAIN; // this translates to 'null'
