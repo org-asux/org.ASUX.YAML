@@ -49,7 +49,7 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
     /** <p>Whether you want deluge of debug-output onto System.out.</p><p>Set this via the constructor.</p>
      *  <p>It's read-only (final data-attribute).</p>
      */
-    private final boolean verbose;
+    private boolean verbose;
 
     /** <p>Whether you want a final SHORT SUMMARY onto System.out.</p><p>a summary of how many matches happened, or how many entries were affected or even a short listing of those affected entries.</p>
      */
@@ -215,5 +215,9 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
     public String dump() {
         return this.savedOutputMaps.toString();
     }
+
+    public boolean getVerbose() {   return this.verbose;    }
+
+    public void setVerbose( final boolean _verbose ) {  this.verbose = _verbose; }
 
 }
