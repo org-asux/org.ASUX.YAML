@@ -35,6 +35,7 @@ package org.ASUX.yaml;
 import org.ASUX.common.Debug;
 import org.ASUX.common.Tuple;
 import org.ASUX.common.Utils;
+import org.ASUX.common.ConfigFileScanner;
 
 import java.util.regex.*;
 import java.util.ArrayList;
@@ -426,12 +427,16 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
         boolean bFoundMatchingENDCmd = false;
         int recursionLevel = 0;
 
-        // cannot use this.hasNextLine().. as it has been overridden in ConfigFileScannerL2, to automatically skip "BUILT-IN-Commands".
-        for ( int ix = this.currentLineNum; ix < this.lines.size(); ix++ ) {
-            // Now advance this.iterator to the right position
+        // !!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!
+        // We cannot use this.hasNextLine() in FOR loop below!!
+        // REASON: hasNextLine() it has been overridden in ConfigFileScannerL2 & other sub-classes, to automatically skip "BUILT-IN-Commands".
 
-            this.currentLineAfterMacroEval = org.ASUX.common.ConfigFileScanner.nextLineOrNull( this );
-            // if I call super.nextLineOrNull().. I'll end up ___EXECUTING__ ALL built-in commands..
+        // for ( int ix = this.currentLineNum; ix < this.lines.size(); ix++ ) {
+        while ( ConfigFileScanner.hasNextLine( this ) ) {
+
+            this.skipLine();
+            // !!!!!!!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!!!!!!!
+            // if I call .nextLineOrNull().. I'll end up ___EXECUTING__ ALL built-in commands..
             // Just want to skip all lines to matching 'end'.   'Skip' means.. literal implementation as in lowest-super-class.
 
             // if ( this.verbose ) System.out.println( HDR +" skipping cmd "+ this.getState() );
