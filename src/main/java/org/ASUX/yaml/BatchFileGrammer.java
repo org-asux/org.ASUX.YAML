@@ -126,6 +126,11 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
         this.makeNewRoot = null;
         this.subBatchFile = null;
         this.batchVerbose = false;
+        if ( this.verbose ) System.out.println( CLASSNAME + ": resetFlagsForEachLine() #2: instance-variables are:- "+ this.dump() );
+    }
+
+    private String dump() {
+        return "this.whichCmd="+ this.whichCmd +" this.saveTo="+ this.saveTo +" this.useAsInput="+ this.useAsInput +" this.subBatchFile="+ this.subBatchFile +" this.batchVerbose="+ this.batchVerbose;
     }
 
     //==============================================================================
@@ -173,6 +178,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     @Override
     public String nextLine() throws Exception
     {   // !!!!!!!!!!!!!!!!!!!!!! OVERRIDES Parent Method !!!!!!!!!!!!!!!!!!!!!!!!
+        if ( this.verbose ) System.out.println( CLASSNAME + "Before flags are reset, instance-variables are:- "+ this.dump() );
         final String nextLn = super.nextLine();
         this.identifyLine();
         return nextLn; // could also be: return this.currentLine();
@@ -214,7 +220,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
 // new Exception(HDR).printStackTrace( System.err );
 
         String line = this.currentLineOrNull(); // remember the line is most likely already trimmed.  We need to chop off any 'echo' prefix
-        if ( this.verbose ) System.out.println( HDR +": line=("+ line +")\t"+ this.getState() );
+        if ( this.verbose ) System.out.println( HDR +": line=("+ line +")\t"+ this.getState() +" "+ this.dump() );
         assertTrue ( line != null );
 
         try {
@@ -309,7 +315,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                 return;
             }
 
-            if ( this.verbose ) System.out.println( HDR +" Oh! oh! oh! oh! oh! oh! oh! oh! oh! Unknown command=("+ line +")\t"+ this.getState() );
+            if ( this.verbose ) System.out.println( HDR +" Oh! oh! oh! oh! oh! oh! oh! oh! oh! Unknown command=("+ line +")\t"+ this.getState() +"\t"+ this.dump() );
             // If we're here.. it means, This class did NOT process the current line
 
         } catch (PatternSyntaxException e) {
@@ -371,11 +377,11 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
         return this.YAMLLibrary;
     }
 
-    /** This function helps detect if the current line pointed to by this.currentLine() contains a 'sleep ___' entry - which will cause the Batch-file-processing to take a quick nap as directed.
-     *  @return String the argument provided to the 'sleep' command
+    /** This function helps detect if the current line pointed to by this.currentLine() turns ON/OFF the --verbose (cmdline) flag.  The advantage vs. the cmd-line flag is that you can turn-ON verbose for specific portions of your BATCH-script.
+     *  @return true or false (representing the options 'on' or 'off')
      */
-    public boolean getVerbose() {
-        return this.batchVerbose || this.verbose;
+    public boolean getBatchVerbose() {
+        return this.batchVerbose;
     }
 
     //==================================
