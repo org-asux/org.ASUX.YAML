@@ -326,7 +326,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
 // As the above statement stands.. it will NEVER BE used, as 'include' is a far better way of doing SUB-BATCHES.
 // Unless you want to use 'include' (for the equivalent of '.' in BASH / 'source' in TCSH)..
 // .. and Cmd_SubBatch as the equivalent of forking a new 'SHell' to execute this sub-batch - completely isolating this current instance of BatchCmdProcessor.
-// if So.. you need to CLONE this current instance of BatchCmdProcessor and then invoke 'go' on that CLONE.
+// if that is what you want.. Ok.  Then! Let me invoke this.go() to create a NEW instance of BatchFileGrammer and BatchCmdProcessor
                     // technically, this.go() method is NOT meant to used recursively.  Semantically, this is NOT recursion :-(
                     this.runcount ++;
                     break;
@@ -373,7 +373,9 @@ public abstract class BatchCmdProcessor<T extends Object> {
                     break;
                 case Cmd_Verbose:
                     if ( this.verbose ) System.out.println( HDR +" this.verbose = =["+ this.verbose +"] & _batchCmds.getVerbose()=["+ _batchCmds.getVerbose() +"].");
-                    this.verbose = _batchCmds.getVerbose();
+                    this.verbose = _batchCmds.getBatchVerbose();
+                    _batchCmds.setVerbose( this.verbose );
+                    this.memoryAndContext.setVerbose( this.verbose );
                     tempOutput = _input; // as nothing changes re: Input and Output Maps.
                     break;
                 // case Cmd_Sleep:
@@ -586,7 +588,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
         }
 
         assertTrue( cmdArgsClassNameStr != null );
-        if ( this.verbose )  System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
+        if ( this.verbose ) System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
 
 
         //--------------------------------
