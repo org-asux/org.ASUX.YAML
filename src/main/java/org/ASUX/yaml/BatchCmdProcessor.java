@@ -523,24 +523,31 @@ public abstract class BatchCmdProcessor<T extends Object> {
         inputFrom = inputFrom.startsWith("?") ? inputFrom.substring(1) : inputFrom; // remove the '?' prefix from key/lhs string
         // repeat a 2nd time - in case user entered '?' BEFORE the quotes
         inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
-        if ( this.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ inputFrom.substring(1) + "'" );
+        if ( this.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ (inputFrom.length()>0?inputFrom.substring(1):"EMPTYString") + "'" );
 
         if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null ) {
             throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory to carry it from one line of the batch file to the next.  And a useAsInput line was encountered for ["+ inputFrom +"]" );
         } else {
-            final Object o = this.memoryAndContext.getContext().getDataFromReference( inputFrom );
-            if ( instanceof_YAMLImplClass( o ) ) // o instanceof T <-- compiler cannot allow me to do this
-            {   @SuppressWarnings("unchecked")
-                final T retMap3 = (T) o;
-                return retMap3;
-            } else {
-                if ( bOkIfMissing && o == null ) 
+            try {
+                final Object o = this.memoryAndContext.getContext().getDataFromReference( inputFrom );
+                if ( instanceof_YAMLImplClass( o ) ) // o instanceof T <-- compiler cannot allow me to do this
+                {   @SuppressWarnings("unchecked")
+                    final T retMap3 = (T) o;
+                    return retMap3;
+                } else {
+                    if ( bOkIfMissing && o == null ) 
+                        return this.getEmptyYAML();
+                    else {
+                        final String es = (o==null) ? ("Nothing found from "+ inputFrom_AsIs) : ("We content of Type: "+ o.getClass().getName()  +" containing ["+ o.toString() +"]");
+                        throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
+                    }
+                } // if instanceof_YAMLImplClass( o )
+            } catch( java.io.FileNotFoundException fnfe ) {
+                if ( bOkIfMissing ) 
                     return this.getEmptyYAML();
-                else {
-                    final String es = (o==null) ? "Nothing in memory under that label." : ("We have type="+ o.getClass().getName()  +" = ["+ o.toString() +"]");
-                    throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
-                }
-            } // if instanceof_YAMLImplClass( o )
+                else
+                    throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Missing file: '"+ inputFrom_AsIs +"'." );
+            } // try-catch
         } // if-else
     }
 
