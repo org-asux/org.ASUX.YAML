@@ -455,7 +455,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
                     continue; // while this.hasNextLine()
             } // if bEnd22
         } // for loop
-        if ( this.verbose ) System.err.println( HDR +"Skipped from row# "+ bookmark +"to matching 'end' @ line# "+ this.currentLineNum );
+        if ( this.verbose ) System.out.println( HDR +"Skipped from row# "+ bookmark +"to matching 'end' @ line# "+ this.currentLineNum );
         if (  !  bFoundMatchingENDCmd ) // sanity check.  This exception will get thrown if logic in the 100 lines above isn't water-tight
             throw new Exception( " ERROR In "+ this.getState() +"] !!STARTING!! from line# "+ bookmark +".. do NOT see a MATCHING 'end' keyword following the  'foreach'.");
     }
