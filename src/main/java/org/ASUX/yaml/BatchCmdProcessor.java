@@ -203,6 +203,13 @@ public abstract class BatchCmdProcessor<T extends Object> {
     protected abstract T getEmptyYAML();
 
     /**
+     *  If any of the Read/List/Replace/Table/Batch commands returned "Empty YAML" (assuming the code retured {@link #getEmptyYAML()}), this is your SIMPLEST way of checking if the YAML is empty.
+     *  @param _n Nullable value
+     *  @return true if the YAML is is NULL - or - is "empty"  as in, it is ===  what's returned by {@link #getEmptyYAML()})
+     */
+    protected abstract boolean isEmptyYAML( final T _n );
+
+    /**
      *  For SnakeYAML Library based subclass of this, simply return 'NodeTools.getNewSingleMap( newRootElem, "", this.dumperoptions )' .. or .. for EsotericSoftware.com-based LinkedHashMap-based library, simply return 'new LinkedHashMap&lt;&gt;.put( newRootElem, "" )'
      *  @param _newRootElemStr the string representing 'lhs' in "lhs: rhs" single YAML entry
      *  @param _valElemStr the string representing 'rhs' in "lhs: rhs" single YAML entry
@@ -525,30 +532,33 @@ public abstract class BatchCmdProcessor<T extends Object> {
         inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
         if ( this.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ (inputFrom.length()>0?inputFrom.substring(1):"EMPTYString") + "'" );
 
-        if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null ) {
+        if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null )
             throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory to carry it from one line of the batch file to the next.  And a useAsInput line was encountered for ["+ inputFrom +"]" );
-        } else {
-            try {
-                final Object o = this.memoryAndContext.getContext().getDataFromReference( inputFrom );
-                if ( instanceof_YAMLImplClass( o ) ) // o instanceof T <-- compiler cannot allow me to do this
-                {   @SuppressWarnings("unchecked")
-                    final T retMap3 = (T) o;
-                    return retMap3;
-                } else {
-                    if ( bOkIfMissing && o == null ) 
-                        return this.getEmptyYAML();
-                    else {
-                        final String es = (o==null) ? ("Nothing found from "+ inputFrom_AsIs) : ("We content of Type: "+ o.getClass().getName()  +" containing ["+ o.toString() +"]");
-                        throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
-                    }
-                } // if instanceof_YAMLImplClass( o )
-            } catch( java.io.FileNotFoundException fnfe ) {
-                if ( bOkIfMissing ) 
+
+        try {
+            final Object o = this.memoryAndContext.getContext().getDataFromReference( inputFrom );
+            if ( instanceof_YAMLImplClass( o ) ) // o instanceof T <-- compiler cannot allow me to do this
+            {   @SuppressWarnings("unchecked")
+                final T retMap3 = (T) o;
+                return retMap3;
+                // if ( isEmptyYAML( retMap3 ) )
+                //     return null;
+                // else
+                //     return retMap3;
+            } else {
+                if ( bOkIfMissing && o == null ) 
                     return this.getEmptyYAML();
-                else
-                    throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Missing file: '"+ inputFrom_AsIs +"'." );
-            } // try-catch
-        } // if-else
+                else {
+                    final String es = (o==null) ? ("Nothing found from "+ inputFrom_AsIs) : ("We content of Type: "+ o.getClass().getName()  +" containing ["+ o.toString() +"]");
+                    throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Failed to read YAML/JSON from ["+ inputFrom_AsIs +"].  "+ es );
+                }
+            } // if instanceof_YAMLImplClass( o )
+        } catch( java.io.FileNotFoundException fnfe ) {
+            if ( bOkIfMissing ) 
+                return this.getEmptyYAML();
+            else
+                throw new BatchFileException( "ERROR In "+ _batchCmds.getState() +".. Missing file: '"+ inputFrom_AsIs +"'." );
+        } // try-catch
     }
 
     //=============================================================================
