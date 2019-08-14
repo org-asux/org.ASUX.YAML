@@ -111,16 +111,16 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
             return retMap2;
 
         } catch (com.fasterxml.jackson.core.JsonParseException e) {
-            if (_verbose) e.printStackTrace(System.err);
-            if (_verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (_verbose) e.printStackTrace(System.out);
+            if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
-            if (_verbose) e.printStackTrace(System.err);
-            if (_verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (_verbose) e.printStackTrace(System.out);
+            if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         } catch (java.io.IOException e) {
-            if (_verbose) e.printStackTrace(System.err);
-            if (_verbose) System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+            if (_verbose) e.printStackTrace(System.out);
+            if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
             throw e;
         }
     } // function
