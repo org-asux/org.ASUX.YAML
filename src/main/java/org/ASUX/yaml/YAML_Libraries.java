@@ -53,7 +53,8 @@ public enum YAML_Libraries
     SNAKEYAML_Library ("org.yaml.snakeyaml.Yaml"),
     CollectionsImpl_Library ("CollectionsImpl"),
     NodeImpl_Library ("NodeImpl"),
-    ASUXYAML_Library ("org.ASUX.yaml")
+    ASUXYAML_Library ("org.ASUX.yaml"),
+    UNDEFINED("undefined")
     ;
 
     //============================================================
@@ -148,9 +149,31 @@ public enum YAML_Libraries
         // return ""+ ESOTERICSOFTWARE_Library +_delim+ SNAKEYAML_Library +_delim+ ASUXYAML_Library;
         String retval = "";
         for (YAML_Libraries typeitem : YAML_Libraries.values()) {
+            if ( typeitem == UNDEFINED )
+                continue;
             retval += typeitem.toString() + _delim;
         }
         return retval;
     }
 
+    //============================================================
+    /**
+     *  <p>Since {@link #NodeImpl_Library} is a synonym for {@link #SNAKEYAML_Library} and since {@link #ESOTERICSOFTWARE_Library} is a synonym for {@link #CollectionsImpl_Library}
+     *      we will standardize on {@link #SNAKEYAML_Library} and  {@link #ESOTERICSOFTWARE_Library}.</p>
+     *  <p>In addition, {@link #ASUXYAML_Library} is currently an alias for {@link #SNAKEYAML_Library}</p>
+     *  @param _inp an enum of this class
+     *  @return either {@link #SNAKEYAML_Library},  {@link #ESOTERICSOFTWARE_Library} or {@link #UNDEFINED}
+     */
+    public static YAML_Libraries normalize( final YAML_Libraries _inp ) {
+        switch ( _inp ) {
+        case CollectionsImpl_Library:   return ESOTERICSOFTWARE_Library;
+        case NodeImpl_Library:          return SNAKEYAML_Library;
+        case ASUXYAML_Library:          return SNAKEYAML_Library;
+        case SNAKEYAML_Library:         return _inp;
+        case ESOTERICSOFTWARE_Library:  return _inp;
+        default:    return UNDEFINED; // only valid values left.
+        } // switch
+    }
+
+    //============================================================
 };
