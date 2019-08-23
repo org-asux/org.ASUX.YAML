@@ -73,7 +73,7 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
 
     private LinkedHashMap<String,Properties> allPropsReference = null;
 
-    private final org.ASUX.yaml.CmdInvoker cmdinvoker;
+    private final org.ASUX.yaml.CmdInvoker<?> cmdinvoker;
 
     //======================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -196,7 +196,7 @@ public class MemoryAndContext implements java.io.Serializable, Cloneable {
     /**
      * @return reference to the {@link org.ASUX.yaml.CmdInvoker} instance that get the entire program running
      */
-    public org.ASUX.yaml.CmdInvoker getContext() {
+    public org.ASUX.yaml.CmdInvoker<?> getContext() {
         return this.cmdinvoker;
     }
 
