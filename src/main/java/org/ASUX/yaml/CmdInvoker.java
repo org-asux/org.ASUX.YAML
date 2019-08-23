@@ -61,13 +61,13 @@ import static org.junit.Assert.*;
  * line options supported.
  * </p>
  */
-public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
+public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
 
     private static final long serialVersionUID = 202L;
 
     public static final String CLASSNAME = CmdInvoker.class.getName();
 
-    // private static final String TMP FILE = System.getProperty("java.io.tmpdir") +"/org.ASUX.yaml.STDOUT.txt";
+    protected transient YAMLImplementation<T> yamlImpl = null; // will not be covered _AUTOMATICALLY_ by deepClone()
 
     /**
      * <p>Whether you want deluge of debug-output onto System.out.</p>
@@ -112,6 +112,22 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
+
+    /**
+     * Reference to the implementation of the YAML read/parsing ONLY
+     * @return a reference to the YAML Library in use.
+     */
+    public YAMLImplementation<T> getYAMLImplementation() {
+        return this.yamlImpl;
+    }
+
+    /**
+     * @param _yi a reference to the YAML Library to use.
+     */
+    public void setYAMLImplementation( final YAMLImplementation<T> _yi ) {
+        this.yamlImpl = _yi;
+    }
+
     /**
      * This allows this class (CmdInvoker) to interact better with BatchYamlProcessor.java, which is the authoritative source of all "saveAs" outputs.
      * This class (CmdInvoker) will use this object (this.memoryAndContext) primarily for passing the replacement-Content and insert-Content (which is NOT the same as --input/-i cmdline option)
@@ -122,44 +138,28 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
     }
 
     /**
-     * know which YAML-parsing/emitting library was chosen by user.  Ideally used within a Batch-Yaml script / BatchYamlProcessor.java
-     * @return the YAML-library in use. See {@link YAML_Libraries} for legal values to this parameter
+     *  To know which YAML-parsing/emitting library was chosen by user.  Ideally used within a Batch-Yaml script / BatchYamlProcessor.java
+     *  @return the YAML-library in use. See {@link YAML_Libraries} for legal values to this parameter
      */
-    public abstract YAML_Libraries getYamlLibrary();
+    public YAML_Libraries getYAMLLibrary() { return this.getYAMLImplementation().getYAMLLibrary(); }
 
-    /**
-     * Allows you to set the YAML-parsing/emitting library of choice.  Ideally used within a Batch-Yaml script.
-     * @param _l the YAML-library to use going forward. See {@link YAML_Libraries} for legal values to this parameter
-     */
-    public abstract void setYamlLibrary( final YAML_Libraries _l );
+    // /**
+    //  * Allows you to set the YAML-parsing/emitting library of choice.  Ideally used within a Batch-Yaml script.
+    //  * @param _l the YAML-library to use going forward. See {@link YAML_Libraries} for legal values to this parameter
+    //  */
+    // public abstract void setYAMLLibrary( final YAML_Libraries _l );
 
-    /**
-     * Reference to the implementation of the YAML read/parsing ONLY
-     * @return a reference to the YAML Library in use.
-     */
-    // public abstract GenericYAMLScanner getYamlScanner();
-
-    /**
-     * Reference to the implementation of the YAML read/parsing ONLY
-     * @return a reference to the YAML Library in use.
-     */
-    // public abstract GenericYAMLWriter getYamlWriter();
-
+    //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-    /**
-     *  <p>Example: For SnakeYAML-library based subclass of this, this should return DumperOptions.class</p>
-     *  <p>This is to be used primarily within org.ASUX.yaml.BatchCmdProcessor#onAnyCmd().</p>
-     *  @return name of class of the object that subclasses of {@link CmdInvoker} use, to configure YAML-Output (example: SnakeYAML uses DumperOptions)
-     */
-    public abstract Class<?> getLibraryOptionsClass();
-
-    /**
-     *  <p>Example: For SnakeYAML-library based subclass of this, this should return the reference to the instance of the class DumperOption</p>
-     *  <p>This is to be used primarily within org.ASUX.yaml.BatchCmdProcessor#onAnyCmd().</p>
-     * @return instance/object that subclasses of {@link CmdInvoker} use, to configure YAML-Output (example: SnakeYAML uses DumperOptions objects)
-     */
-    public abstract Object getLibraryOptionsObject();
+    //=================================================================================
+    // /**
+    //  *  This function is meant to be used by Cmd.main() and by BatchProcessor.java.  Read the code *FIRST*, to see if you can use this function too.
+    //  *  @param _cmdLineArgs Everything passed as commandline arguments to the Java program {@link org.ASUX.yaml.CmdLineArgsCommon}
+    //  *  @return a NotNull reference to a subclass of {@link YAMLImplementation}
+    //  *  @throws Exception if any invalid configuration was detected within the only argument passed in.
+    //  */
+    // public abstract YAMLImplementation<T> config ( org.ASUX.yaml.CmdLineArgsCommon _cmdLineArgs )
+    //             throws Exception;
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -220,16 +220,20 @@ public abstract class CmdInvoker implements java.io.Serializable, Cloneable {
      *  <p> <code> java.utils.LinkedHashMap&lt;String, Object&gt; tmp = new java.utils.LinkedHashMap&lt;String, Object&gt;(); </code> <br>
      *  <p> <code> tmp.putAll( origObj.getSavedOutputMaps() ); </code> <br>
      *  <p> <code> clone.setSavedOutputMaps( tmp ); </code> <br>
+     *  @param <T> either SnakeYAML's Node.class or LinkedHashMap&lt;String,Object&gt; for EsotericSoftware's YAML implementation
      *  @param origObj the object to be cloned - cannot be null (will throw NullPointerException)
      *  @return a properly cloned and re-initiated clone of the original
      *  @throws Exception when org.ASUX.common.Utils.deepClone clones the core of this class-instance 
      */
-    public static CmdInvoker deepClone( final CmdInvoker origObj ) throws Exception {
-        final org.ASUX.yaml.CmdInvoker newCmdinvoker = org.ASUX.common.Utils.deepClone( origObj );
-        newCmdinvoker.setYamlLibrary( origObj.getYamlLibrary() );
+    public static <T> CmdInvoker<T> deepClone( final CmdInvoker<T> origObj ) throws Exception {
+        final org.ASUX.yaml.CmdInvoker<T> newCmdinvoker = org.ASUX.common.Utils.deepClone( origObj );
+
         final LinkedHashMap<String, Object> tmp = new LinkedHashMap<String, Object>();
         tmp.putAll( origObj.getMemoryAndContext().getSavedOutputMaps() );
         newCmdinvoker.getMemoryAndContext().setSavedOutputMaps( tmp );
+
+        newCmdinvoker.setYAMLImplementation( origObj.getYAMLImplementation().deepClone() );
+
         return newCmdinvoker;
     }
 }
