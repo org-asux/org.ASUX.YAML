@@ -87,6 +87,14 @@ public class Cmd {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
+    // NOTE !!!!!!!!!!
+    // This org.ASUX.yaml parent-project's Cmd.java does __NOT__ implement the static-method called startYAMLImplementation(_cmdLineArgs, _cmdInvoker)
+    // Only the sub-projects do.
+
+    //=================================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //=================================================================================
+
     /**
      * This is NOT testing code. It's actual means by which user's command line arguments are read and processed
      * @param args user's commandline arguments
@@ -104,29 +112,34 @@ public class Cmd {
 
             if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"arguments ="+ cmdLineArgsBasic );
 
-            String classNameStr = null;
+            String implMainEntryClassNameStr = null;
             if ( YAML_Libraries.isCollectionsImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
-                classNameStr = "org.ASUX.yaml.CollectionsImpl.Cmd";
+                implMainEntryClassNameStr = "org.ASUX.yaml.CollectionsImpl.Cmd";
+
             } else if ( YAML_Libraries.isNodeImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
-                classNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
+                implMainEntryClassNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
             }
-            assertTrue( classNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
+            assertTrue( implMainEntryClassNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
 
             //--------------------------------
             // returns: protected Class<?> -- throws ClassNotFoundException
-            final Class<?> implClass = Cmd.class.getClassLoader().loadClass(classNameStr);
+            final Class<?> implMainEntryClass = Cmd.class.getClassLoader().loadClass(implMainEntryClassNameStr);
             // findClass() method of ClassLoader is NOT VISIBLE - its a protected method.
             // The findClass() method searches for the class in the current class loader, if the class wasn't found by the parent class loader.
             // i.e., findClass() will be invoked by loadClass(), after checking the parent class loader for the requested class.
-            if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"classNameStr=["+classNameStr+"] successfully loaded using ClassLoader.");
+            if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"implMainEntryClassNameStr=["+implMainEntryClassNameStr+"] successfully loaded using ClassLoader.");
 
             //--------------------------------
             // First check to see if a static method called Run(/* no parameters */) is defined.
             // If not, then try run( date, String, CrontabEntry, Timer )...
             final Class[] paramClassList = { String[].class };
             final Object[] methodArgs = { args };
-            org.ASUX.common.GenericProgramming.invokeStaticMethod( implClass, "main", paramClassList, methodArgs );
-            if ( cmdLineArgsBasic.verbose ) System.out.println( HDR +"returned from successfully invoking "+classNameStr+".main().");
+            org.ASUX.common.GenericProgramming.invokeStaticMethod( implMainEntryClass, "main", paramClassList, methodArgs );
+            if ( cmdLineArgsBasic.verbose ) System.out.println( HDR +"returned from successfully invoking "+implMainEntryClassNameStr+".main().");
+
+            // !!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!
+            // It's the assumption that the main() method of the 'implMainEntryClass' .. will internally invoke <implMainEntryClass>.startYAMLImplementation()
+            // Basically, bottomline: This method does NOT have to invoke <implMainEntryClass>.startYAMLImplementation().
 
         } catch ( org.apache.commons.cli.ParseException pe ) {
             // ATTENTION: If CmdLineArgs.java  and its subclasses threw an ParseException, they'll catch it themselves, showHelp(), and write debug output.
