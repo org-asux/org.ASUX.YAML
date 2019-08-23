@@ -235,6 +235,8 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
             this.YAMLLibrary = YAML_Libraries.fromString( _apacheCmdProcessor.getOptionValue(YAMLLIB) );
         else
             this.YAMLLibrary = YAML_Libraries.SNAKEYAML_Library; // default.
+
+        YAMLImplementation.setDefaultYAMLImplementation( this.YAMLLibrary );
     }
 
     //=================================================================================
