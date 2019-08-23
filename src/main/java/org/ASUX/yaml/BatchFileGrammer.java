@@ -66,7 +66,7 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     public static final String REGEXP_INLINEVALUE = "['\" ${}@%a-zA-Z0-9\\[\\]\\.,:_/-]+"; // You better keep this INSYNC with ConfigFileScannerL2.REGEXP_NAME
 
     public static final String REGEXP_YAMLLIBRARY = "^\\s*useYAMLLibrary\\s+("+ YAML_Libraries.list("|") +")\\s*$";
-    public static final String REGEXP_MKNEWROOT = "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*$";
+    public static final String REGEXP_MKNEWROOT = "^\\s*makeNewRoot\\s+("+ REGEXP_NAME +")\\s*(\\s--no-quote|\\s--single-quote|\\s--double-quote)*\\s*$";
     public static final String REGEXP_BATCH = "^\\s*batch\\s+("+ REGEXP_NAME +")\\s*$";
     public static final String REGEXP_SAVETO = "^\\s*saveTo\\s+("+ REGEXP_OBJECT_REFERENCE +")\\s*$";
     public static final String REGEXP_USEASINPUT = "^\\s*useAsInput\\s+("+ REGEXP_OBJECT_REFERENCE +"|"+ REGEXP_INLINEVALUE +")\\s*$";
@@ -84,9 +84,11 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
 
     private String saveTo = null;
     private String useAsInput = null;
-    private String makeNewRoot = null;
     private String subBatchFile = null;
     private boolean batchVerbose = false;
+
+    private String makeNewRoot = null;
+    private Enums.ScalarStyle quoteType = Enums.ScalarStyle.UNDEFINED;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -241,7 +243,23 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
             if (makeNewRootMatcher.find()) {
                 if ( this.verbose ) System.out.println( CLASSNAME +": I found the text "+ makeNewRootMatcher.group() +" starting at index "+  makeNewRootMatcher.start() +" and ending at index "+ makeNewRootMatcher.end() );    
                 this.makeNewRoot = makeNewRootMatcher.group(1); // line.substring( makeNewRootMatcher.start(), makeNewRootMatcher.end() );
-                if ( this.verbose ) System.out.println( "\t makeNewRoot=[" + this.makeNewRoot +"]" );
+                String quoteOption = makeNewRootMatcher.group(2); // should NOT throw 'IndexOutOfBoundsException' .. like it would for makeNewRootMatcher.group(99)
+                if ( this.verbose ) System.out.println( "\t makeNewRoot=[" + this.makeNewRoot +"] with quote "+ quoteOption );
+                // !!!!!!!! Attention !!!!!! quoteOption will (guaranteed) have a SINGLE whitespace character @ position #0 (see REGEXP_MKNEWROOT)
+                if ( quoteOption != null && quoteOption.trim().length() > 0 ) {
+                    quoteOption = quoteOption.trim();
+                    // this.quoteType = Enums.ScalarStyle.fromString( quoteOption.trim() ); // WONT WORK.  fromString() expects single-char like: ' "  >  |
+                    final String[] quoteTypesStr = { "--no-quote", "--single-quote", "--double-quote" };
+                    final Enums.ScalarStyle[] quoteTypesEnum = { Enums.ScalarStyle.PLAIN, Enums.ScalarStyle.SINGLE_QUOTED, Enums.ScalarStyle.DOUBLE_QUOTED };
+                    this.quoteType = Enums.ScalarStyle.UNDEFINED; // default value, unless FOR-loop in next-line changes it
+                    for( int ix=0; ix < quoteTypesStr.length; ix++ ) {
+// System.err.println( HDR + "quote #"+ ix +"="+ quoteTypesStr[ix] +" .. checking the value ["+ this.makeNewRoot +"]" );
+                        if ( quoteTypesStr[ix].equals( quoteOption ) ) {
+                            this.quoteType = quoteTypesEnum[ix];
+                        } // if
+                    } // for
+// System.err.println( HDR + "quote="+ this.quoteType +" .. leaving this.makeNewRoot="+ this.makeNewRoot );
+                }
                 this.whichCmd = BatchCmdType.Cmd_MakeNewRoot;
                 return;
             }
@@ -329,6 +347,13 @@ public class BatchFileGrammer extends org.ASUX.common.ScriptFileScanner {
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
+
+    /** This function helps detect if the current line pointed to by this.currentLine() contains a 'saveTo ___' entry
+     *  @return an enum value - see {@link Enums.ScalarStyle}
+     */
+    public Enums.ScalarStyle getQuoteType() {
+        return this.quoteType;
+    }
 
     /** This function helps detect if the current line pointed to by this.currentLine() contains a 'saveTo ___' entry
      *  @return String the argument provided to the saveTo command
