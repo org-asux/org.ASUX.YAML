@@ -17,7 +17,7 @@
 	<parent>
 		<groupId>org.asux</groupId>
 		<artifactId>MavenCentralRepo-TopLevelPOM</artifactId>
-		<version>2.0</version>
+		<version>3.0</version>
 		<!-- <relativePath>../pom-MavenCentralRepo-TopLevelParent.xml</relativePath> -->
 		<!-- EVEN tho' PARENT-POM is in .M2 REPOSITORY... I'm forced to use RELATIVEPATH.  The reason?  The following MAVEN output -->
 <!--
@@ -65,15 +65,19 @@
 		<tag>HEAD</tag>
 	</scm>
 
+        <!-- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ -->
+        <!-- =========================================================== -->
+        <!-- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ -->
+
     <dependencies>
         <dependency>
             <groupId>org.asux</groupId>
             <artifactId>common</artifactId>
         </dependency>
+        <!-- JUNIT5 junit5 -->
         <dependency>
-            <!-- scope>test</scope -->
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
@@ -90,5 +94,6 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+	</dependencies>
 
 </project>
