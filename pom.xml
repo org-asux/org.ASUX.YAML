@@ -7,8 +7,10 @@
 	<groupId>org.asux</groupId>
 	<artifactId>yaml</artifactId>
     
-    <version>1.0</version>
+    <version>1.1</version>
 	<packaging>jar</packaging>
+    <!-- v1.1 Switched from org.apache.commons.cli to ALTLR4, to parse command-lines. Major simplification changes to CmdLineArgs and it subclasses -->
+    <!-- v1.0 Original release.  Robust code base.  Well tested for both SnakeYAML and EsotericSoftware-based ContainerImpl -->
 
     <inceptionYear>2019</inceptionYear>
     <description>Cmdline interface to process YAML files, leveraging the brilliantly robust gitbub project  github.com:esotericsoftware/yamlbeans.git (which is a Java object graphs, to and from YAML)</description>
@@ -17,7 +19,7 @@
 	<parent>
 		<groupId>org.asux</groupId>
 		<artifactId>TopLevelPOM</artifactId>
-		<version>1.2</version>
+		<version>1.2.2</version>
 		<relativePath>../pom-TopLevelParent.xml</relativePath>
 		<!-- EVEN tho' PARENT-POM is in .M2 REPOSITORY... I'm forced to use RELATIVEPATH.  The reason?  The following MAVEN output -->
 <!--
@@ -74,10 +76,20 @@
             <groupId>org.asux</groupId>
             <artifactId>common</artifactId>
         </dependency>
-        <!-- JUNIT5 junit5 -->
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <groupId>org.asux</groupId>
+            <artifactId>language.antlr4</artifactId>
+        </dependency>
+
+
+        <!-- https://tomassetti.me/domain-specific-languages/#textual_languages -->
+        <!-- /htdocs/Manuals/GNU-OSS-FOSS/ANTLR_Mega_Tutorial.pdf -->
+        <!-- https://mvnrepository.com/artifact/org.antlr/antlr4 -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4</artifactId>
+            <!-- <version>4.7.2</version> -->
+            <!-- <scope>compile</scope> -->
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
@@ -94,6 +106,18 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
+        <!-- JUNIT5 junit5 -->
+<!--        <dependency>-->
+<!--            <groupId>org.junit.vintage</groupId>-->
+<!--            <artifactId>junit-vintage-engine</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.junit.jupiter</groupId>-->
+<!--            <artifactId>junit-jupiter-api</artifactId>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
 	</dependencies>
 
 </project>
