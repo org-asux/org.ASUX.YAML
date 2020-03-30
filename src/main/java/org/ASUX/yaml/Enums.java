@@ -93,6 +93,8 @@ public final class Enums
          * @throws Exception if string parameter is invalid
          */
         public static ScalarStyle fromString(String type) throws Exception {
+            if ( type == null || type.trim().equals("") )
+                return PLAIN;
             for (ScalarStyle typeitem : ScalarStyle.values()) {
                 if (typeitem.toString().equals(type)) {
                     return typeitem;
@@ -158,6 +160,8 @@ public final class Enums
          * @throws Exception if string parameter is invalid
          */
         public static CmdEnum fromString(String type) throws Exception {
+            if ( type == null || type.trim().equals("") )
+                return UNKNOWN;
             for (CmdEnum typeitem : CmdEnum.values()) {
                 if (typeitem.toString().equals(type)) {
                     return typeitem;
