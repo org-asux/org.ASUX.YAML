@@ -32,8 +32,6 @@
 
 package org.ASUX.yaml;
 
-import org.apache.commons.cli.*;
-
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -47,7 +45,7 @@ import org.apache.commons.cli.*;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgsBatchCmd extends CmdLineArgs {
+public class CmdLineArgsBatchCmd extends CmdLineArgsCommon {
 
     private static final long serialVersionUID = 334L;
 
@@ -55,60 +53,14 @@ public class CmdLineArgsBatchCmd extends CmdLineArgs {
 
     public String batchFilePath = null;       // Required for 'batch' command
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /** Constructor.
-     *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
-     *  @param _shortCmd example "r" "zd"
-     *  @param _longCmd example "read" "table"
-     *  @param _cmdDesc long description. See org.apache.commons.cli for complex examples.
-     *  @param _numArgs the # of additional arguments following this command
-     *  @param _addlArgsDesc what the HELP command shows about these additional args
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
-     */
-    public CmdLineArgsBatchCmd( final Enums.CmdEnum _cmdType,
-                                final String _shortCmd, final String _longCmd, final String _cmdDesc,
-                                final int _numArgs, final String _addlArgsDesc  )
-                                throws Exception
-    {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
-    } // method
-
-
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /**
-     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
-     */
-    @Override
-    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
-                    throws MissingOptionException, ParseException, Exception
-    {
-        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
-
-        this.batchFilePath = _apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.BATCHCMD[1] );
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
     public String toString() {
         return super.toString() +" batchFilePath="+batchFilePath;
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    // For unit-testing purposes only
-    public static void main(String[] args) {
-        try{
-            final CmdLineArgsBatchCmd cla = new CmdLineArgsBatchCmd( Enums.CmdEnum.BATCH, CmdLineArgsBasic.BATCHCMD[0], CmdLineArgsBasic.BATCHCMD[1], CmdLineArgsBasic.BATCHCMD[2], 1, "BatchFileName" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
-            cla.define();
-            cla.parse(args);
-            System.out.println(cla);
-        } catch( Exception e) {
-            e.printStackTrace(System.err); // main() for unit-testing
-            System.exit(1);
-        }
     }
 
 }

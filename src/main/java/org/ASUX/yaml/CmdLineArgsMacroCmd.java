@@ -32,8 +32,6 @@
 
 package org.ASUX.yaml;
 
-import org.apache.commons.cli.*;
-
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -47,47 +45,18 @@ import org.apache.commons.cli.*;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgsMacroCmd extends CmdLineArgs {
+public class CmdLineArgsMacroCmd extends CmdLineArgsCommon {
+
+    private static final long serialVersionUID = 337L;
 
     public static final String CLASSNAME = CmdLineArgsMacroCmd.class.getName();
 
     public String propertiesFilePath = null;       // required for 'macro' command
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /** Constructor.
-     *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
-     *  @param _shortCmd example "r" "zd"
-     *  @param _longCmd example "read" "table"
-     *  @param _cmdDesc long description. See org.apache.commons.cli for complex examples.
-     *  @param _numArgs the # of additional arguments following this command
-     *  @param _addlArgsDesc what the HELP command shows about these additional args
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
-     */
-    public CmdLineArgsMacroCmd( final Enums.CmdEnum _cmdType,
-                                final String _shortCmd, final String _longCmd, final String _cmdDesc,
-                                final int _numArgs, final String _addlArgsDesc  )
-                                throws Exception
-    {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
-    } // method
-
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /**
-     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
-     */
-    @Override
-    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
-                    throws MissingOptionException, ParseException, Exception
-    {
-        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
-
-        this.propertiesFilePath = _apacheCmdProcessor.getOptionValue( this.cmdAsStr ); // CmdLineArgsBasic.MACROYAMLCMD[1] );
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
     @Override
@@ -95,18 +64,5 @@ public class CmdLineArgsMacroCmd extends CmdLineArgs {
         return super.toString() +" propertiesFilePath="+propertiesFilePath;
     }
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    // For unit-testing purposes only
-    public static void main(String[] args) {
-        try{
-            final CmdLineArgsMacroCmd cla = new CmdLineArgsMacroCmd( Enums.CmdEnum.MACROYAML, CmdLineArgsBasic.MACROYAMLCMD[0], CmdLineArgsBasic.MACROYAMLCMD[1], CmdLineArgsBasic.MACROYAMLCMD[2], 1, "propertiesFile" );
-            cla.define();
-            cla.parse(args);
-            System.out.println(cla);
-        } catch( Exception e) {
-            e.printStackTrace(System.err); // main() for unit-testing
-            System.exit(1);
-        }
-    }
 
 }

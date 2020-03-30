@@ -32,22 +32,12 @@
 
 package org.ASUX.yaml;
 
-import org.ASUX.common.Tuple;
-import org.ASUX.common.Debug;
 import org.ASUX.common.Macros;
 
-import org.ASUX.yaml.MemoryAndContext;
-import org.ASUX.yaml.BatchFileGrammer;
-import org.ASUX.yaml.CmdLineArgs;
-import org.ASUX.yaml.CmdLineArgsBasic;
-import org.ASUX.yaml.CmdLineArgsBatchCmd;
-
-import java.util.regex.*;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-
 import java.util.Properties;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -56,9 +46,9 @@ import static org.junit.Assert.*;
  *  <p>This class contains implementation batch-processing of multiple YAML commands (combinations of read, list, delete, replace, macro commands)</p>
  *  <p>This org.ASUX.yaml GitHub.com project and the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com projects.</p>
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.CmdInvoker} as well as the <a href="https://github.com/org-asux/org-ASUX.github.io/wiki">org.ASUX.cmdline</a> GitHub.com projects.</p>
- *  @param T either the SnakeYaml library's org.yaml.snakeyaml.nodes.Node .. or.. EsotericSoftware Library's preference for LinkedHashMap&lt;String,Object&gt;
  */
-public abstract class BatchCmdProcessor<T extends Object> {
+ // *  @param T either the SnakeYaml library's org.yaml.snakeyaml.nodes.Node .. or.. EsotericSoftware Library's preference for LinkedHashMap&lt;String,Object&gt;
+public abstract class BatchCmdProcessor<T> {
 
     public static final String CLASSNAME = BatchCmdProcessor.class.getName();
 
@@ -238,15 +228,15 @@ public abstract class BatchCmdProcessor<T extends Object> {
      */
     public T go( final String _batchFileName, final T _node ) throws Exception
     {
-        assertTrue( _batchFileName != null );
-        assertTrue( _node != null );
+        assertNotNull(_batchFileName);
+        assertNotNull(_node);
 
         final String HDR = CLASSNAME +": go(_batchFileName="+ _batchFileName +","+ _node.getClass().getName() +"): ";
         // if ( _batchFileName == null || _node == null )
         //     return getEmptyYAML();  // null (BatchFile) is treated as  batchfile with ZERO commands.
 
         this.startTime = new java.util.Date();
-        String line = null;
+        // String line = null;
 
         final BatchFileGrammer batchCmds = new BatchFileGrammer( this.verbose, this.allProps );
         if ( _batchFileName.startsWith("@") ) {
@@ -258,14 +248,14 @@ public abstract class BatchCmdProcessor<T extends Object> {
 
         try {
             if ( batchCmds.openFile( _batchFileName, true, true ) ) {
-                if ( this.verbose ) System.out.println( CLASSNAME + ": go(): successfully opened _batchFileName [" + _batchFileName +"]" );
+                if ( this.verbose ) System.out.println( HDR + ": go(): successfully opened _batchFileName [" + _batchFileName +"]" );
                 if ( this.showStats ) System.out.println( _batchFileName +" has "+ batchCmds.getCommandCount() );
 
                 final T  retNode = this.processBatch( false, batchCmds, _node );
-                if ( this.verbose ) System.out.println( CLASSNAME +" go():  retNode =" + retNode +"\n\n");
+                if ( this.verbose ) System.out.println( HDR +" go():  retNode =" + retNode +"\n\n");
 
                 this.endTime = new java.util.Date();
-                if ( this.showStats ) System.out.println( "Ran "+ this.runcount +" commands from "+ this.startTime +" until "+ this.endTime +" = " + (this.endTime.getTime() - this.startTime.getTime()) +" seconds" );
+                if ( this.showStats ) System.out.println( HDR + "Ran "+ this.runcount +" commands from "+ this.startTime +" until "+ this.endTime +" = " + (this.endTime.getTime() - this.startTime.getTime()) +" seconds" );
                 return retNode;
 
             } else { // if-else openFile()
@@ -307,7 +297,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
                         throws BatchFileException, java.io.FileNotFoundException, Exception
     {
         assertTrue( _batchCmds != null );
-        assertTrue( _input != null );
+        assertNotNull(_input);
         final String HDR = CLASSNAME +": processBatch(recursion="+ _bInRecursion +","+ _batchCmds.getCmdType() +"): ";
         T tempOutput = null; // it's immediately re-initialized within WHILE-Loop below.
 
@@ -379,7 +369,7 @@ public abstract class BatchCmdProcessor<T extends Object> {
                     if ( this.verbose ) System.out.println( HDR +" Setting YAMLLibrary ="+ _batchCmds.getYAMLLibrary() );
                     // this.memoryAndContext.getContext().getYAMLImplementation().setYAMLLibrary( _batchCmds.getYAMLLibrary() );
 System.err.println( HDR +"Not Implemented: The ability to switch YAML libraries within a BATCH Script @ "+ _batchCmds.getState() );
-assertTrue( false );
+fail();
                     tempOutput = _input; // as nothing changes re: Input and Output Maps.
                     break;
                 case Cmd_Verbose:
@@ -572,13 +562,13 @@ assertTrue( false );
     private T onAnyCmd( final BatchFileGrammer _batchCmds, final T _input )
                     throws BatchFileException, Macros.MacroException, java.io.FileNotFoundException, java.io.IOException, Exception
     {
-        assertTrue( _batchCmds != null );
-        assertTrue( _input != null );
+        assertNotNull(_batchCmds);
+        assertNotNull(_input);
         final String HDR = CLASSNAME + ": onAnyCmd(): ";
         final String cmdStr_AsIs = _batchCmds.getCommand();
-        assertTrue ( cmdStr_AsIs != null );
+        assertNotNull(cmdStr_AsIs);
         final String cmdStrNM = Macros.evalThoroughly( this.verbose, cmdStr_AsIs, this.allProps ).trim();
-        assertTrue ( cmdStrNM != null );
+        assertNotNull(cmdStrNM);
 
         final boolean isYAMLCmd = cmdStrNM.equals("yaml");
         final boolean isAWSCmd = cmdStrNM.equals("aws.sdk");
@@ -600,7 +590,7 @@ assertTrue( false );
         String implClassNameStr = null;
 
         if ( isYAMLCmd ) {
-            cmdArgsClassNameStr = "org.ASUX.YAML.NodeImpl.CmdLineArgs";
+            cmdArgsClassNameStr = "org.ASUX.yaml.CmdLineArgsCommon";
             implClassNameStr = "org.ASUX.YAML.NodeImpl.CmdInvoker";
         } else if ( isAWSCmd ) {
             cmdArgsClassNameStr = "org.ASUX.AWSSDK.CmdLineArgsAWS";
@@ -612,14 +602,12 @@ assertTrue( false );
             throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
         }
 
-        assertTrue( cmdArgsClassNameStr != null );
+        assertNotNull(cmdArgsClassNameStr);
         if ( this.verbose ) System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
-        assertTrue( implClassNameStr != null );
+        assertNotNull(implClassNameStr);
         if ( this.verbose )  System.out.println( HDR +"implClassNameStr ="+ implClassNameStr );
 
         //--------------------------------
-        org.ASUX.yaml.CmdLineArgsCommon newCmdLineArgsObj;
-
         // Do the equivalent of:- new org.ASUX.YAML.NodeImpl.CmdInvoker( this.verbose, this.showStats, .. .. );
         // Do the equivalent of:- new org.ASUX.AWSSDK.CmdInvoker( this.verbose, this.showStats, .. .. );
         try {
@@ -627,107 +615,126 @@ assertTrue( false );
 
             final Class<?> cmdArgsClass = Cmd.class.getClassLoader().loadClass( cmdArgsClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
             if ( this.verbose )  System.out.println( HDR +"cmdArgsClassNameStr=["+ cmdArgsClassNameStr +"] successfully loaded using ClassLoader.");
-            final Object oo2 = org.ASUX.common.GenericProgramming.invokeStaticMethod( cmdArgsClass, "create", mainArgsClassList, mainArgs );
-            if ( this.verbose ) System.out.println( HDR +"returned from successfully invoking "+ cmdArgsClassNameStr +".create()." );
+            // // final Object oo2 = org.ASUX.common.GenericProgramming.invokeStaticMethod( cmdArgsClass, "create", mainArgsClassList, mainArgs );
+            // Constructor<?> ctor = cmdArgsClass.getConstructor();
+            // Constructor<?> constructor = cmdArgsClass.getConstructors()[0];
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// new org.ASUX.yaml.CmdLineArgsCommon(); // cannot be done.  As its an Abstract class.
+            // Object oo2 = ctor.newInstance();
 
-            newCmdLineArgsObj = (org.ASUX.yaml.CmdLineArgsCommon) oo2;
+            //--------------------------------------------------------------
+// ????????????
+//  Just like for YAML, AWS.SDK and AWS.CFN need their own Parser & Grammer.
+// So, those 2 Projects will have their own EQUIVALENT of YAMLCmdANTLR4Parser.
+// So, the generic code here, is to find out what the equivalent of YAMLCmdANTLR4Parser is.
+            final ArrayList<CmdLineArgsCommon> cmds =
+                    new YAMLCmdANTLR4Parser( this.verbose ).parseYamlCommandLine( cmdStr_AsIs );
 
-            CmdLineArgsCommon.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
-            // newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-            // newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
-            // newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
+            for ( CmdLineArgsCommon newCmdLineArgsObj: cmds ) {
+                // ???Cmd???.go( cmd );
+                CmdLineArgsCommon.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+                // newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+                // newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
+                // newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
 
-            // if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
-            //     newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+                // if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
+                //     newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
 
-            if ( this.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj.toString() );
+                if ( this.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj.toString() );
 
-        } catch (ClassNotFoundException e) {
-            final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-            if ( this.verbose ) e.printStackTrace(System.err);
-            if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
-            throw new BatchFileException( e.getMessage() );
-        } catch (Exception e) {
-            final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-            if ( this.verbose ) e.printStackTrace(System.err);
-            if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
-            throw new BatchFileException( e.getMessage() );
-        }
+// We already know what the CMD-FAMILY is: whether YAML, AWS.SDK or AWS.CFN
+// based on that .. invoke the appropriate Cmd above.
 
-        //--------------------------------
-        // We need to invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
-        // For that let's gather the Constructor parameter-types and arguments
-        Class[] paramClassList;
-        Object[] methodArgs;
+                //--------------------------------
+                // We need to invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
+                // For that let's gather the Constructor parameter-types and arguments
+                Class[] paramClassList;
+                Object[] methodArgs;
 
-        // if ( isYAMLCmd ) {
+                // if ( isYAMLCmd ) {
 // now that I am invoking 'newCmdinvoker.setYAMLImplementation( clone );' about 60 lines below..
 // .. i do NOT think methodArgs need to longer for 'isYAMLCmd' - versus 'isAWSCmd'
 // Come back later and simplify the code.
-            // paramClassList  = new Class[] { boolean.class, boolean.class, MemoryAndContext.class, this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsClass() };
-            // methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats, this.memoryAndContext, this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsObject() };
-        // } else if ( isAWSCmd || isAWSCFNCmd ) {
+                    // paramClassList  = new Class[] { boolean.class, boolean.class, MemoryAndContext.class, this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsClass() };
+                    // methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats, this.memoryAndContext, this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsObject() };
+                // } else if ( isAWSCmd || isAWSCFNCmd ) {
 
-        if ( isYAMLCmd || isAWSCmd || isAWSCFNCmd ) {
-            // paramClassList  = new Class[] { boolean.class, boolean.class,           this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsClass() };
-            // methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats,          this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsObject() };
-            paramClassList  = new Class[]  { boolean.class,             boolean.class,                  MemoryAndContext.class };
-            methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats,    this.memoryAndContext  };
+                if ( isYAMLCmd || isAWSCmd || isAWSCFNCmd ) {
+                    // paramClassList  = new Class[] { boolean.class, boolean.class,           this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsClass() };
+                    // methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats,          this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsObject() };
+                    paramClassList  = new Class[]  { boolean.class,             boolean.class,                  MemoryAndContext.class };
+                    methodArgs      = new Object[] { this.verbose, this.showStats,    this.memoryAndContext  };
+                } else {
+                    throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
+                }
 
-        } else {
-            throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
-        }
+                //--------------------------------
+                // Now invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
+                org.ASUX.yaml.CmdInvoker<T> newCmdinvoker;
+                try {
+                    if ( this.verbose ) System.out.println( HDR +"about to invoke "+ implClassNameStr +".constructor()." );
 
-        //--------------------------------
-        // Now invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
-        org.ASUX.yaml.CmdInvoker<T> newCmdinvoker;
-        try {
-            if ( this.verbose ) System.out.println( HDR +"about to invoke "+ implClassNameStr +".constructor()." );
+                    final Class<?> implClass = Cmd.class.getClassLoader().loadClass( implClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
+                    if ( this.verbose )  System.out.println( HDR +"implClassNameStr=["+ implClassNameStr +"] successfully loaded using ClassLoader.");
+                    final Object oo = org.ASUX.common.GenericProgramming.invokeConstructor( implClass, paramClassList, methodArgs );
+                    if ( this.verbose ) System.out.println( HDR +"returned from successfully invoking "+ implClassNameStr +".constructor()." );
 
-            final Class<?> implClass = Cmd.class.getClassLoader().loadClass( implClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
-            if ( this.verbose )  System.out.println( HDR +"implClassNameStr=["+ implClassNameStr +"] successfully loaded using ClassLoader.");
-            final Object oo = org.ASUX.common.GenericProgramming.invokeConstructor( implClass, paramClassList, methodArgs );
-            if ( this.verbose ) System.out.println( HDR +"returned from successfully invoking "+ implClassNameStr +".constructor()." );
+                    @SuppressWarnings("unchecked")
+                    final org.ASUX.yaml.CmdInvoker<T> tmpObj = (org.ASUX.yaml.CmdInvoker<T>) oo;
+                    newCmdinvoker = tmpObj;
 
-            @SuppressWarnings("unchecked")
-            final org.ASUX.yaml.CmdInvoker<T> tmpObj = (org.ASUX.yaml.CmdInvoker<T>) oo;
-            newCmdinvoker = tmpObj;
+                // } catch (ClassNotFoundException e) {
+                //     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
+                //     if ( this.verbose ) e.printStackTrace(System.err);
+                //     if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+                //     throw new BatchFileException( e.getMessage() );
+                } catch (Exception e) {
+                    final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
+                    if ( this.verbose ) e.printStackTrace(System.err);
+                    if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+                    throw new BatchFileException( e.getMessage() );
+                }
 
-        } catch (ClassNotFoundException e) {
-            final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-            if ( this.verbose ) e.printStackTrace(System.err);
-            if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
-            throw new BatchFileException( e.getMessage() );
+                //--------------------------------
+                if ( isYAMLCmd || isAWSCmd || isAWSCFNCmd ) {
+                    @SuppressWarnings("unchecked")
+                    final CmdInvoker<T> cmdI = (CmdInvoker<T>) this.memoryAndContext.getContext();
+                    final YAMLImplementation<T> orig = cmdI.getYAMLImplementation();
+                    final YAMLImplementation<T> clone = orig.deepClone();
+
+                    newCmdinvoker.setYAMLImplementation( clone );
+                    if (this.verbose) System.out.println( HDR +" set YAML-Library to [" + orig.getYAMLLibrary() + " and [" + newCmdinvoker.getYAMLImplementation().getYAMLLibrary() + "]" );
+
+                } else {
+                    // We must have a previous replica of this same IF-ELSE-ELSE above.  So, how come we're still here in this block?
+                    System.err.println( HDR +"FATAL ERROR: Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
+                    System.exit(61);
+                }
+
+                //--------------------------------
+                // We expect the underlying library to generate the object of type T for the return value of newCmdinvoker.processCommand().
+                @SuppressWarnings("unchecked")
+                final T output = (T) newCmdinvoker.processCommand( newCmdLineArgsObj, _input );
+                if (this.verbose) System.out.println( HDR +" processing of command returned [" + (output==null?"null":output.getClass().getName()) + "]" );
+                return output;
+
+            } // For (Cmds)
+
+            // shouldnt be here
+            return null;
+
+            //--------------------------------------------------------------
+            // } catch (ClassNotFoundException e) {
+            //     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
+            //     if ( this.verbose ) e.printStackTrace(System.err);
+            //     if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+            //     throw new BatchFileException( e.getMessage() );
         } catch (Exception e) {
             final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
             if ( this.verbose ) e.printStackTrace(System.err);
             if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
             throw new BatchFileException( e.getMessage() );
         }
-
-        //--------------------------------
-        if ( isYAMLCmd || isAWSCmd || isAWSCFNCmd ) {
-            @SuppressWarnings("unchecked")
-            final CmdInvoker<T> cmdI = (CmdInvoker<T>) this.memoryAndContext.getContext();
-            final YAMLImplementation<T> orig = cmdI.getYAMLImplementation();
-            final YAMLImplementation<T> clone = orig.deepClone();
-
-            newCmdinvoker.setYAMLImplementation( clone );
-            if (this.verbose) System.out.println( HDR +" set YAML-Library to [" + orig.getYAMLLibrary() + " and [" + newCmdinvoker.getYAMLImplementation().getYAMLLibrary() + "]" );
-
-        } else {
-            // We must have a previous replica of this same IF-ELSE-ELSE above.  So, how come we're still here in this block?
-            System.err.println( HDR +"FATAL ERROR: Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
-            System.exit(61);
-        }
-
-        //--------------------------------
-        // We expect the underlying library to generate the object of type T for the return value of newCmdinvoker.processCommand().
-        @SuppressWarnings("unchecked")
-        final T output = (T) newCmdinvoker.processCommand( newCmdLineArgsObj, _input );
-        if (this.verbose) System.out.println( HDR +" processing of command returned [" + (output==null?"null":output.getClass().getName()) + "]" );
-        return output;
-
     }
 
     //=======================================================================

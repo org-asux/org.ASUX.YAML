@@ -42,14 +42,14 @@ package org.ASUX.yaml;
  .. ..
  *</pre>
  *
- *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
- * @see org.ASUX.yaml.Cmd
+ *  <p>See full details of how to use this, in {@link Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
+ * @see Cmd
  */
-public class CmdLineArgsInsertCmd extends CmdLineArgs {
+public class CmdLineArgsReadCmd extends CmdLineArgs {
 
-    public static final String CLASSNAME = CmdLineArgsInsertCmd.class.getName();
+    public static final String CLASSNAME = CmdLineArgsReadCmd.class.getName();
 
-    public String insertFilePath = null;       // optional argument, but required for 'insert' command
+    public String projectionPath = null;       // optional argument
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -59,7 +59,7 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
      */
     @Override
     public String toString() {
-        return super.toString() +" insertFile="+insertFilePath +" & newContent(not shown).";
+        return super.toString() +" projectionPath="+projectionPath +".";
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

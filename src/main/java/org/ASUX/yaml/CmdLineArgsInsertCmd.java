@@ -32,8 +32,6 @@
 
 package org.ASUX.yaml;
 
-import org.apache.commons.cli.*;
-
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -53,45 +51,10 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
 
     public String insertFilePath = null;       // optional argument, but required for 'insert' command
 
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /** Constructor.
-     *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
-     *  @param _shortCmd example "r" "zd"
-     *  @param _longCmd example "read" "table"
-     *  @param _cmdDesc long description. See org.apache.commons.cli for complex examples.
-     *  @param _numArgs the # of additional arguments following this command
-     *  @param _addlArgsDesc what the HELP command shows about these additional args
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
-     */
-    public CmdLineArgsInsertCmd( final Enums.CmdEnum _cmdType,
-                                final String _shortCmd, final String _longCmd, final String _cmdDesc,
-                                final int _numArgs, final String _addlArgsDesc  )
-                                throws Exception
-    {
-        super( _cmdType, _shortCmd, _longCmd, _cmdDesc, _numArgs, _addlArgsDesc );
-    } // method
-
-
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /**
-     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
-     */
-    @Override
-    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
-                    throws MissingOptionException, ParseException, Exception
-    {
-        super.parseAdditionalOptions(_args, _apacheCmdProcessor);
-
-        final String[] insertArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.INSERTCMD[1] );
-        // because we set .setArgs(2) above.. you can get the values for:- insertArgs[0] and insertArgs[1].
-        this.yamlRegExpStr = insertArgs[0]; // 1st of the 2 arguments for INSERT cmd.
-        this.insertFilePath = insertArgs[1];
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
      */
     @Override
@@ -100,17 +63,5 @@ public class CmdLineArgsInsertCmd extends CmdLineArgs {
     }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    // For unit-testing purposes only
-    public static void main(String[] args) {
-        try{
-            final CmdLineArgsInsertCmd cla = new CmdLineArgsInsertCmd( Enums.CmdEnum.INSERT, CmdLineArgsBasic.INSERTCMD[0], CmdLineArgsBasic.INSERTCMD[1], CmdLineArgsBasic.INSERTCMD[2], 2, "YAMLPattern> <newValue" );  // Note: there's a trick in the parameter-string.. as setArgName() assumes a single 'word' and puts a '<' & '>' around that single-word.
-            cla.define();
-            cla.parse(args);
-            System.out.println(cla);
-        } catch( Exception e) {
-            e.printStackTrace(System.err); // main() for unit-testing
-            System.exit(1);
-        }
-    }
 
 }

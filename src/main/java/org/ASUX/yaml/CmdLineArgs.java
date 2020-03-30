@@ -32,10 +32,6 @@
 
 package org.ASUX.yaml;
 
-import org.apache.commons.cli.*;
-
-import static org.junit.Assert.*;
-
 /** <p>This class is a typical use of the org.apache.commons.cli package.</p>
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
@@ -54,122 +50,10 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
     private static final long serialVersionUID = 333L;
     public static final String CLASSNAME = CmdLineArgs.class.getName();
 
-    protected static final String YAMLPATH = "yamlpath";
-    protected static final String DELIMITER = "delimiter";
-    protected static final String YAMLLIB = "yamllibrary";
-
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //These reflect the user's commandline options
     public String yamlRegExpStr = "undefined";
     public String yamlPatternDelimiter = ".";
-
-    public final Enums.CmdEnum cmdType;
-    protected final String cmdAsStr; // the string version of cmdType
-
-    protected int numArgs = -1;
-    protected String shortCmd = null;
-    protected String longCmd = null;
-    protected String cmdDesc = null;
-    protected String addlArgsDesc = null;
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    /**
-     *  @param _cmdType enum denoting what the user's command-type was, as entered on the command line
-     *  @param _shortCmd example "r" "zd"
-     *  @param _longCmd example "read" "table"
-     *  @param _cmdDesc long description. See org.apache.commons.cli for complex examples.
-     *  @param _numArgs the # of additional arguments following this command
-     *  @param _addlArgsDesc what the HELP command shows about these additional args
-     *  @throws Exception like ClassNotFoundException while trying to serialize and deserialize the input-parameter
-     */
-    public CmdLineArgs( final Enums.CmdEnum _cmdType,
-                            final String _shortCmd, final String _longCmd, final String _cmdDesc,
-                            final int _numArgs, final String _addlArgsDesc )
-                            throws Exception
-    {
-        // final String HDR = CLASSNAME + ": constructor(<args>,"+ _cmdType +",_,"+ _longCmd +",_,"+ _numArgs +",_): ";
-        this.cmdType = _cmdType;
-        this.cmdAsStr = _longCmd;
-
-        this.shortCmd = _shortCmd;
-        this.longCmd = _longCmd;
-        this.cmdDesc = _cmdDesc;
-        this.numArgs = _numArgs;
-        this.addlArgsDesc = _addlArgsDesc;
-    }
-
-    //=================================================================================
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //=================================================================================
-
-    // /** @see org.ASUX.yaml.CmdLineArgsCommon#
-    //  */
-    // @Override
-    // public void define() {
-    //     super.define(); // this will automatically invoke defineAdditionalOptions();
-    //     super.defineInputOutputOptions();
-    // }
-
-    //=================================================================================
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //=================================================================================
-
-    /**
-     *  <p>Add cmd-line argument definitions (using apache.commons.cli.Options) for the instance-variables defined in this class.</p>
-     */
-    @Override
-    protected void defineAdditionalOptions()
-    {   final String HDR = CLASSNAME + ": defineAdditionalOptions(): ";
-        Option opt;
-
-        //----------------------------------
-        super.defineInputOutputOptions();
-
-        //----------------------------------
-        opt = CmdLineArgsCommon.genOption( "zd", DELIMITER, "whether period/dot comma pipe or other character is the delimiter to use within the YAMLPATHPATTERN",
-                                            1, "delimcharacter" );
-        opt.setRequired(false);
-        this.options.addOption(opt);
-
-        //----------------------------------
-        opt = genOption( this.shortCmd, this.longCmd, this.cmdDesc, this.numArgs, this.addlArgsDesc);
-        opt.setRequired(true);
-        this.options.addOption( opt );
-
-        if ( this.verbose ) System.out.println( HDR +"completed function." );
-    } // method
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-    /**
-     *  @see org.ASUX.yaml.CmdLineArgsCommon#parseAdditionalOptions
-     */
-    @Override
-    protected void parseAdditionalOptions( String[] _args, final org.apache.commons.cli.CommandLine _apacheCmdProcessor )
-                    throws MissingOptionException, ParseException, Exception
-    {
-        final String HDR = CLASSNAME + ": parseAdditionalOptions([]],..): ";
-
-        //-----------------------
-        super.parseInputOutputOptions( _args, _apacheCmdProcessor );
-
-        //-----------------------
-        this.yamlPatternDelimiter = _apacheCmdProcessor.getOptionValue(DELIMITER);
-        if ( this.yamlPatternDelimiter == null || this.yamlPatternDelimiter.equals(".") )
-            this.yamlPatternDelimiter = YAMLPath.DEFAULTDELIMITER;
-
-        assertTrue( _apacheCmdProcessor.hasOption( this.cmdAsStr ) ); // sanity check
-
-        //-----------------------
-        final String[] addlArgs = _apacheCmdProcessor.getOptionValues( this.cmdAsStr ); // CmdLineArgsBasic.REPLACECMD[1]
-        if ( this.numArgs != addlArgs.length )
-            throw new Exception ( CLASSNAME + ": parse("+ _args +"): does Not have the required "+ this.numArgs +" additional-arguments to the "+ this.cmdAsStr +" command" );
-
-        this.yamlRegExpStr = _apacheCmdProcessor.getOptionValue( this.cmdAsStr );
-
-            //-----------------------
-        if ( this.verbose ) System.err.println( HDR +": "+this.toString());
-    }
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
@@ -180,23 +64,7 @@ public class CmdLineArgs extends org.ASUX.yaml.CmdLineArgsCommon {
         super.toString()
         +" YAML-Library="+YAMLLibrary
         +" yamlRegExpStr="+yamlRegExpStr+" yamlPatternDelimiter="+yamlPatternDelimiter
-        +" Cmd-Type="+cmdType +"("+cmdAsStr+") "
         ;
-    }
-
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    // For unit-testing purposes only
-    public static void main(String[] args) {
-        final String HDR = CLASSNAME + ": main(args[]): ";
-        try{
-            final CmdLineArgs cmdLineArgs = new CmdLineArgs( Enums.CmdEnum.REPLACE, CmdLineArgsBasic.REPLACECMD[0], CmdLineArgsBasic.REPLACECMD[1], CmdLineArgsBasic.REPLACECMD[2], 2, "YAMLPattern> <filenae" );
-            cmdLineArgs.define();
-            cmdLineArgs.parse(args);
-            System.out.println( HDR + cmdLineArgs );
-        } catch( Exception e) {
-            e.printStackTrace(System.err); // main() for unit testing
-            System.exit(1);
-        }
     }
 
 }
