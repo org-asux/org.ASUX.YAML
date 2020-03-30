@@ -74,10 +74,19 @@
             <groupId>org.asux</groupId>
             <artifactId>common</artifactId>
         </dependency>
-        <!-- JUNIT5 junit5 -->
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
+            <groupId>org.asux</groupId>
+            <artifactId>language.antlr4</artifactId>
+        </dependency>
+
+        <!-- https://tomassetti.me/domain-specific-languages/#textual_languages -->
+        <!-- /htdocs/Manuals/GNU-OSS-FOSS/ANTLR_Mega_Tutorial.pdf -->
+        <!-- https://mvnrepository.com/artifact/org.antlr/antlr4 -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4</artifactId>
+            <!-- <version>4.7.2</version> -->
+            <!-- <scope>compile</scope> -->
         </dependency>
         <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
         <dependency>
@@ -94,6 +103,18 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
-	</dependencies>
+
+        <!-- JUNIT5 junit5 -->
+<!--        <dependency>-->
+<!--            <groupId>org.junit.vintage</groupId>-->
+<!--            <artifactId>junit-vintage-engine</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.junit.jupiter</groupId>-->
+<!--            <artifactId>junit-jupiter-api</artifactId>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
+    </dependencies>
 
 </project>
