@@ -32,15 +32,7 @@
 
 package org.ASUX.yaml;
 
-import org.ASUX.common.Tuple;
-import org.ASUX.common.Output;
-
-import java.util.LinkedList;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Properties;
-
-import static org.junit.Assert.*;
 
 /**
  *  <p>This class is a bunch of tools to help make it easy to work with the java.util.Map objects that the YAML library creates.</p>
@@ -84,9 +76,10 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
      *  @throws java.io.IOException if any error using java.io.StringReader and java.io.StringWriter
      *  @throws Exception any other run-time exception, while parsing large Strings, nullpointers, etc.. ..
      */
-    public static final LinkedHashMap<String, Object>  JSONString2Map( final boolean _verbose, final String  _jsonString )
+    public static LinkedHashMap<String, Object>  JSONString2Map(final boolean _verbose, final String  _jsonString )
                     throws java.io.IOException, Exception
     {
+        // We're going to alter the contents of '_jsonString', even as we need the original as-is value for debug-statements and error-messages.
         String wellFormedJSONString = _jsonString;
 
         if ( _jsonString.contains("=") && ! _jsonString.contains(":") ) {
@@ -104,7 +97,8 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
             com.fasterxml.jackson.databind.ObjectMapper objMapper = new com.fasterxml.jackson.databind.ObjectMapper();
             objMapper.configure( com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true );
             objMapper.configure( com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-            com.fasterxml.jackson.databind.type.MapType type = objMapper.getTypeFactory().constructMapType( LinkedHashMap.class, String.class, Object.class );
+            /* com.fasterxml.jackson.databind.type.MapType type   = */
+                objMapper.getTypeFactory().constructMapType( LinkedHashMap.class, String.class, Object.class );
             LinkedHashMap<String, Object> retMap2 = objMapper.readValue( reader3, new com.fasterxml.jackson.core.type.TypeReference< LinkedHashMap<String,Object> >(){}  );
             if ( _verbose ) System.out.println( CLASSNAME +" JSONString2Map("+ _jsonString +"): jsonMap loaded BY OBJECTMAPPER into a LinkedHashMao =" + retMap2 );
             // retMap2 = this.lintRemoverMap( retMap2 ); // this will 'clean/lint-remove'
