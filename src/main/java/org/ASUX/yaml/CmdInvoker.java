@@ -228,8 +228,7 @@ public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
     public static <T> CmdInvoker<T> deepClone( final CmdInvoker<T> origObj ) throws Exception {
         final org.ASUX.yaml.CmdInvoker<T> newCmdinvoker = org.ASUX.common.Utils.deepClone( origObj );
 
-        final LinkedHashMap<String, Object> tmp = new LinkedHashMap<String, Object>();
-        tmp.putAll( origObj.getMemoryAndContext().getSavedOutputMaps() );
+        final LinkedHashMap<String, Object> tmp = new LinkedHashMap<>(  origObj.getMemoryAndContext().getSavedOutputMaps()  );
         newCmdinvoker.getMemoryAndContext().setSavedOutputMaps( tmp );
 
         newCmdinvoker.setYAMLImplementation( origObj.getYAMLImplementation().deepClone() );
