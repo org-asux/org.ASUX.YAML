@@ -32,7 +32,7 @@
 
 package org.ASUX.yaml;
 
-import static org.junit.Assert.*;
+// import static org.junit.Assert.*;
 
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -303,15 +303,15 @@ public abstract class YAMLImplementation<T> implements Serializable
     public static <T> YAMLImplementation<T> startupYAMLImplementationFactory( final YAML_Libraries _yamllibrary_type, final org.ASUX.yaml.CmdLineArgsCommon _cmdLineArgs, final CmdInvoker _cmdInvoker )
     {   final String HDR = CLASSNAME +": startupYAMLImplementationFactory("+ _yamllibrary_type +",_cmdLineArgs,_cmdInvoker): ";
 
-        assertTrue( YAML_Libraries.normalize( _yamllibrary_type ) == YAML_Libraries.normalize( _cmdLineArgs.getYAMLLibrary() )  );
+        assert( YAML_Libraries.normalize( _yamllibrary_type ) == YAML_Libraries.normalize( _cmdLineArgs.YAMLLibrary )  );
         try {
             String implMainEntryClassNameStr = null;
-            if ( YAML_Libraries.isCollectionsImpl( _cmdLineArgs.getYAMLLibrary() ) ) {
+            if ( YAML_Libraries.isCollectionsImpl( _cmdLineArgs.YAMLLibrary ) ) {
                 implMainEntryClassNameStr = "org.ASUX.yaml.CollectionsImpl.Cmd";
-            } else if ( YAML_Libraries.isNodeImpl( _cmdLineArgs.getYAMLLibrary() ) ) {
+            } else if ( YAML_Libraries.isNodeImpl( _cmdLineArgs.YAMLLibrary ) ) {
                 implMainEntryClassNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
             }
-            assertTrue( implMainEntryClassNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
+            assert( implMainEntryClassNameStr != null ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
 
             //--------------------------------
             // returns: protected Class<?> -- throws ClassNotFoundException
