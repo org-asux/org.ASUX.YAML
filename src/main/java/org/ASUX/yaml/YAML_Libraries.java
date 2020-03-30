@@ -41,7 +41,8 @@ import static org.junit.Assert.*;
  *  <p>Valid values are: </p>
  *  <ul>
     <li>ESOTERICSOFTWARE_Library ("com.esotericsoftware.yamlbeans")</li>
-    <li>SNAKEYAML_Library ("org.yaml.snakeyaml.Yaml")</li>
+    <li>ORGSNAKEYAML_Library ("org.yaml.snakeyaml")</li>
+    <li>SNAKEYAML_Library ("SnakeYAML")</li>
     <li>CollectionsImpl_Library ("CollectionsImpl")</li>
     <li>NodeImpl_Library ("NodeImpl")</li>
     <li>ASUXYAML_Library ("org.ASUX.yaml")</li>
@@ -50,7 +51,8 @@ import static org.junit.Assert.*;
 public enum YAML_Libraries
 {
     ESOTERICSOFTWARE_Library ("com.esotericsoftware.yamlbeans"),
-    SNAKEYAML_Library ("org.yaml.snakeyaml.Yaml"),
+    SNAKEYAML_Library ("SnakeYAML"),
+    ORGSNAKEYAML_Library ("org.yaml.snakeyaml"),
     CollectionsImpl_Library ("CollectionsImpl"),
     NodeImpl_Library ("NodeImpl"),
     ASUXYAML_Library ("org.ASUX.yaml"),
@@ -91,6 +93,7 @@ public enum YAML_Libraries
             if (typeitem.toString().equals(type)) {
                 if ( typeitem == ESOTERICSOFTWARE_Library ) return CollectionsImpl_Library;
                 if ( typeitem == SNAKEYAML_Library ) return NodeImpl_Library;
+                if ( typeitem == ORGSNAKEYAML_Library ) return NodeImpl_Library;
                 return typeitem;
             }
         }
@@ -125,7 +128,7 @@ public enum YAML_Libraries
      * @return ( _yl == SNAKEYAML_Library || _yl == NodeImpl_Library )
      */
     public static boolean isNodeImpl( final YAML_Libraries _yl ) {
-        return ( _yl == SNAKEYAML_Library || _yl == NodeImpl_Library );
+        return ( _yl == ORGSNAKEYAML_Library || _yl == SNAKEYAML_Library || _yl == NodeImpl_Library );
     }
 
     /**
@@ -169,6 +172,7 @@ public enum YAML_Libraries
         case CollectionsImpl_Library:   return ESOTERICSOFTWARE_Library;
         case NodeImpl_Library:          return SNAKEYAML_Library;
         case ASUXYAML_Library:          return SNAKEYAML_Library;
+        case ORGSNAKEYAML_Library:      return SNAKEYAML_Library;
         case SNAKEYAML_Library:         return _inp;
         case ESOTERICSOFTWARE_Library:  return _inp;
         default:    return UNDEFINED; // only valid values left.
