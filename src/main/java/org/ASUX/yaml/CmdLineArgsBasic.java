@@ -80,20 +80,6 @@ public class CmdLineArgsBasic extends org.ASUX.yaml.CmdLineArgsCommon {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-    /**
-     * This object reference is either to a CmdLineArgs class (for READ, LIST and DELETE commands), or subclasses of CmdLineArgs (for INSERT, REPLACE, TABLE, MACRO, BATCH commands)
-     * @return either an instance of CmdLineArgs or one of it's subclasses (depends on this.cmdType {@link #cmdType})
-     */
-    public CmdLineArgs getSpecificCmd() {
-        final String HDR = CLASSNAME + ": getSpecificCmd(): ";
-        throw new RuntimeException( HDR+" thisClass.parse() method should set the value for 'this.cmdLineArgs'");
-        // return this.cmdLineArgs;
-    }
-
-    //=================================================================================
-    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    //=================================================================================
-
     protected static Option addSimpleOption( final Options _options, final String _short, final String _long, final String description ) {
         final Option opt = new Option( _short, _long, false /* boolean hasArg */, description );
         opt.setRequired( false );
