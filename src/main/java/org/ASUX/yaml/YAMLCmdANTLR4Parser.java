@@ -67,7 +67,7 @@ import java.util.List;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 //==============================================================================
 
-public class YAMLCmdANTLR4Parser {
+public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdANTLR4Parser {
 
     private static final String HDR0 = YAMLCmdANTLR4Parser.class.getName();
 
@@ -227,9 +227,9 @@ public class YAMLCmdANTLR4Parser {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    public ArrayList<CmdLineArgsCommon> parseYamlCommandLine( final String _cmdLineStr ) throws Exception {
+    public ArrayList<org.ASUX.language.antlr4.CmdLineArgs> parseYamlCommandLine( final String _cmdLineStr ) throws Exception {
         final String HDR = HDR0 + ".parseYamlCommandLine():\t";
-        final ArrayList<CmdLineArgsCommon> returnArray = new ArrayList<>();
+        final ArrayList<org.ASUX.language.antlr4.CmdLineArgs> returnArray = new ArrayList<>();
 
         try {
             // DEPRECATED: ANTLRInputStream inputStream = new ANTLRInputStream( _cmdLineStr );
@@ -495,7 +495,7 @@ public class YAMLCmdANTLR4Parser {
                     //=================================================================
                     carg.inputFilePath  = macroCtx.inputSrc.getText();
                     carg.outputFilePath = macroCtx.outputSink.getText();
-                    if ( this.verbose ) System.out.println( HDR + "REPLACE-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
+                    if ( this.verbose ) System.out.println( HDR + "MACRO-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
 
                     //=================================================================
                     if (this.verbose) System.out.println(HDR + "MACRO-YAML's properties-file =[" + macroCtx.macroProperties().getText() + "] ");
@@ -525,11 +525,11 @@ public class YAMLCmdANTLR4Parser {
                     //=================================================================
                     carg.inputFilePath  = batchCtx.inputSrc.getText();
                     carg.outputFilePath = batchCtx.outputSink.getText();
-                    if ( this.verbose ) System.out.println( HDR + "REPLACE-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
+                    if ( this.verbose ) System.out.println( HDR + "BATCH-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
 
                     //=================================================================
-                    if (this.verbose) System.out.println(HDR + "MACRO-YAML's properties-file =[" + batchCtx.batchFilePath.getText() + "] ");
-                    carg.batchFilePath = batchCtx.batchFilePath.getText();
+                    if (this.verbose) System.out.println(HDR + "BATCH-YAML's properties-file =[" + batchCtx.batchFilePath().getText() + "] ");
+                    carg.batchFilePath = batchCtx.batchFilePath().getText();
 
                     // Cmd.go( carg );
                     returnArray.add( carg );
