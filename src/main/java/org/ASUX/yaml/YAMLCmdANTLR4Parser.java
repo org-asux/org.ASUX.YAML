@@ -128,7 +128,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
     //==============================================================================
 
     //=================================================================
-    private void setRegExp( final CmdLineArgs carg, final YAMLANTLR4Parser.RegularexpressionContext regExpCtx ) {
+    private void setRegExp( final CmdLineArgsRegExp carg, final YAMLANTLR4Parser.RegularexpressionContext regExpCtx ) {
         final String HDR = HDR0 + ".setRegExp():\t";
         final YAMLANTLR4ParserUtils util = new YAMLANTLR4ParserUtils( this.verbose );
 
@@ -150,7 +150,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
         }
     }
 
-    private void setOptionalsDelimiter( final CmdLineArgs carg, final List<YAMLANTLR4Parser.OptionalsContext> _optionalsCtxSet ) throws Exception {
+    private void setOptionalsDelimiter( final CmdLineArgsRegExp carg, final List<YAMLANTLR4Parser.OptionalsContext> _optionalsCtxSet ) throws Exception {
         final String HDR = HDR0 + ".setOptionalsDelimiter():\t";
         final YAMLANTLR4ParserUtils util = new YAMLANTLR4ParserUtils(this.verbose);
 
@@ -318,7 +318,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
                     if ( this.verbose ) System.out.println( HDR + "yaml LIST command detected!" );
                     if ( this.verbose ) System.out.println( HDR + "about to run LEXER's ASSERT-checks" );
 
-                    final CmdLineArgs carg = new CmdLineArgs();
+                    final CmdLineArgsRegExp carg = new CmdLineArgsRegExp();
 
                     //---------------------------------
                     carg.cmdAsStr = _cmdLineStr;
@@ -384,7 +384,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
                     if ( this.verbose ) System.out.println( HDR + " yaml DELETE command detected!" );
                     if ( this.verbose ) System.out.println( HDR + "deleteCtx ="+ deleteCtx );
 
-                    final CmdLineArgs carg = new CmdLineArgs();
+                    final CmdLineArgsRegExp carg = new CmdLineArgsRegExp();
 
                     //=================================================================
                     carg.cmdAsStr = _cmdLineStr;
@@ -400,7 +400,8 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
                     carg.outputFilePath = deleteCtx.outputSink.getText();
                     if ( this.verbose ) System.out.println( HDR + "DELETE-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
 
-                    Cmd.go( carg );
+                    // Cmd.go( carg );
+                    returnArray.add( carg );
                     continue; // !!!!!!!!!!!!!!!!! VERY IMPORTANT !!!!!!!!!!!!!!!!  .. .. as we are UNABLE to rely on a SWITCH-statement.
                 }
 
