@@ -45,7 +45,7 @@ package org.ASUX.yaml;
  *  <p>See full details of how to use this, in {@link Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see Cmd
  */
-public class CmdLineArgsReadCmd extends CmdLineArgs {
+public class CmdLineArgsReadCmd extends CmdLineArgsRegExp {
 
     public static final String CLASSNAME = CmdLineArgsReadCmd.class.getName();
 

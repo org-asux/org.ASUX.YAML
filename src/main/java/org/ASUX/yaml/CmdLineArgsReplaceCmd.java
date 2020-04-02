@@ -45,7 +45,7 @@ package org.ASUX.yaml;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgsReplaceCmd extends CmdLineArgs {
+public class CmdLineArgsReplaceCmd extends CmdLineArgsRegExp {
 
     public static final String CLASSNAME = CmdLineArgsReplaceCmd.class.getName();
 

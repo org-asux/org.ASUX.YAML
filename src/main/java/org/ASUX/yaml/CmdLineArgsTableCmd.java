@@ -45,7 +45,7 @@ package org.ASUX.yaml;
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public class CmdLineArgsTableCmd extends CmdLineArgs {
+public class CmdLineArgsTableCmd extends CmdLineArgsRegExp {
 
     private static final long serialVersionUID = 336L;
 
