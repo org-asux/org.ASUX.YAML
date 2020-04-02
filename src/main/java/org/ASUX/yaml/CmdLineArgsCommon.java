@@ -104,36 +104,37 @@ public abstract class CmdLineArgsCommon implements org.ASUX.language.antlr4.CmdL
     //=================================================================================
 
     /**
-     * Given the original object of this class, copy these attributes to the 2nd object of this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
-     * @param _orig a NotNull reference
-     * @param _copy a NotNull reference
+     * Given a different  object of this class, copy it's attributes into this object.  {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
+     * @param _origObj a NotNull reference
      */
-    public void copyBasicFlags( final CmdLineArgsCommon _orig, final CmdLineArgsCommon _copy ) {
-        _copy.verbose   = _copy.verbose || _orig.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-        _copy.showStats = _copy.showStats || _orig.showStats;
-        _copy.offline = _copy.offline || _orig.offline;
+    @Override
+    public void copyBasicFlags( final org.ASUX.language.antlr4.CmdLineArgs _origObj ) {
+        final CmdLineArgsCommon _orig = (CmdLineArgsCommon) _origObj;
+        this.verbose   = this.verbose || _orig.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+        this.showStats = this.showStats || _orig.showStats;
+        this.offline = this.offline || _orig.offline;
 
-        if ( _copy.quoteType == Enums.ScalarStyle.UNDEFINED )
-            _copy.quoteType = _orig.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+        if ( this.quoteType == Enums.ScalarStyle.UNDEFINED )
+            this.quoteType = _orig.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
     }
 
-    /**
-     * Copy these attributes to the provided object of this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
-     * @param _copy a NotNull reference
-     * @param _verbose  {@link #verbose}
-     * @param _showStats {@link #showStats}
-     * @param _offline {@link #offline}
-     * @param _quoteType {@link #quoteType}
-     */
-    public void copyBasicFlags( final CmdLineArgsCommon _copy,
-                            final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
-        _copy.verbose   = _copy.verbose || _verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-        _copy.showStats = _copy.showStats || _showStats;
-        _copy.offline = _copy.offline || _offline;
-
-        if ( _copy.quoteType == Enums.ScalarStyle.UNDEFINED )
-            _copy.quoteType = _quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
-    }
+    // /**
+    //  * Copy these attributes to the provided object of this class: {@link #verbose}, {@link #showStats}, {@link #offline}, {@link #quoteType}
+    //  * @param _copy a NotNull reference
+    //  * @param _verbose  {@link #verbose}
+    //  * @param _showStats {@link #showStats}
+    //  * @param _offline {@link #offline}
+    //  * @param _quoteType {@link #quoteType}
+    //  */
+    // public void copyBasicFlags( final CmdLineArgsCommon _copy, final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType )
+    // {
+    //     _copy.verbose   = _copy.verbose || _verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+    //     _copy.showStats = _copy.showStats || _showStats;
+    //     _copy.offline = _copy.offline || _offline;
+    //
+    //     if ( _copy.quoteType == Enums.ScalarStyle.UNDEFINED )
+    //         _copy.quoteType = _quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+    // }
 
     //=================================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
