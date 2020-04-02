@@ -47,7 +47,7 @@ public static void main(String[] args) {
  *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
  * @see org.ASUX.yaml.Cmd
  */
-public abstract class CmdLineArgsCommon implements java.io.Serializable {
+public abstract class CmdLineArgsCommon implements org.ASUX.language.antlr4.CmdLineArgs,    java.io.Serializable  {
 
     private static final long serialVersionUID = 141L;
 
@@ -108,7 +108,7 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
      * @param _orig a NotNull reference
      * @param _copy a NotNull reference
      */
-    public static void copyBasicFlags( final CmdLineArgsCommon _orig, final CmdLineArgsCommon _copy ) {
+    public void copyBasicFlags( final CmdLineArgsCommon _orig, final CmdLineArgsCommon _copy ) {
         _copy.verbose   = _copy.verbose || _orig.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
         _copy.showStats = _copy.showStats || _orig.showStats;
         _copy.offline = _copy.offline || _orig.offline;
@@ -125,7 +125,7 @@ public abstract class CmdLineArgsCommon implements java.io.Serializable {
      * @param _offline {@link #offline}
      * @param _quoteType {@link #quoteType}
      */
-    public static void copyBasicFlags( final CmdLineArgsCommon _copy,
+    public void copyBasicFlags( final CmdLineArgsCommon _copy,
                             final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
         _copy.verbose   = _copy.verbose || _verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
         _copy.showStats = _copy.showStats || _showStats;
