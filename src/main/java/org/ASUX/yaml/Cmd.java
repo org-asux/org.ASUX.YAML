@@ -154,11 +154,12 @@ public class Cmd {
 
             if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"arguments ="+ cmdLineArgsBasic );
 
-            final ArrayList<CmdLineArgsCommon> cmds =
+            final ArrayList<org.ASUX.language.antlr4.CmdLineArgs> cmds =
                     new YAMLCmdANTLR4Parser( cmdLineArgsBasic.verbose ).parseYamlCommandLine( String.join(" ", args));
 
-            for ( CmdLineArgsCommon cmd: cmds ) {
-                go( cmd );
+            for ( org.ASUX.language.antlr4.CmdLineArgs cmd: cmds ) {
+                final CmdLineArgsCommon subClassObj = (CmdLineArgsCommon) cmd;
+                go( subClassObj );
             }
 
             // String implMainEntryClassNameStr = null;
