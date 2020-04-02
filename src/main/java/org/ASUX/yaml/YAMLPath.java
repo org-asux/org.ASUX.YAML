@@ -164,7 +164,12 @@ public class YAMLPath implements Serializable {
         this.yamlElemArr = _yp.split(_delim);
 
         if (this.verbose) System.out.println( HDR +" this.yamlElemArr has length '"+this.yamlElemArr.length+"'");
-        if (this.verbose) System.out.println( HDR +" this.yamlElemArr[0] = '"+this.yamlElemArr[0]+"'");
+        if (this.verbose) {
+            if ( this.yamlElemArr != null & this.yamlElemArr.length > 0 )
+                System.out.println( HDR +" this.yamlElemArr[0] = '"+this.yamlElemArr[0]+"'");
+            else
+                System.out.println( HDR +" this.yamlElemArr is NULL or empty");
+        }
 
         for(int ix=0; ix < this.yamlElemArr.length; ix++ ) {
             String elem = this.yamlElemArr[ix];
