@@ -244,7 +244,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
             final YAMLANTLR4Parser defaultParser = new YAMLANTLR4Parser( commonTokenStream );
 
             //==============================================================================
-            defaultParser.setErrorHandler( new org.ASUX.language.antlr4.BailErrorStrategy() );
+            defaultParser.setErrorHandler( new org.ASUX.language.antlr4.BailErrorStrategy( this.verbose ) );
             // With BailErrorStrategy, at the first ___Lexical___ Error, both parser & lexer stop.
 
             // Error Listener
@@ -398,7 +398,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
                     //=================================================================
                     carg.inputFilePath  = deleteCtx.inputSrc.getText();
                     carg.outputFilePath = deleteCtx.outputSink.getText();
-                    if ( this.verbose ) System.out.println( HDR + "TABLE-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
+                    if ( this.verbose ) System.out.println( HDR + "DELETE-YAML's InputSOURCE =["+ carg.inputFilePath +"] OutputSink=["+ carg.outputFilePath +"]" );
 
                     Cmd.go( carg );
                     continue; // !!!!!!!!!!!!!!!!! VERY IMPORTANT !!!!!!!!!!!!!!!!  .. .. as we are UNABLE to rely on a SWITCH-statement.
