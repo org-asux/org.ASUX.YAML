@@ -32,16 +32,10 @@
 
 package org.ASUX.yaml;
 
-import org.ASUX.yaml.YAMLPath;
-import org.ASUX.yaml.MemoryAndContext;
-import org.ASUX.yaml.CmdLineArgs;
-
 import java.util.LinkedHashMap;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import static org.junit.Assert.*;
 
 /**
  * <p> This org.ASUX.yaml GitHub.com project and the
@@ -70,11 +64,17 @@ public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
     protected transient YAMLImplementation<T> yamlImpl = null; // will not be covered _AUTOMATICALLY_ by deepClone()
 
     /**
-     * <p>Whether you want deluge of debug-output onto System.out.</p>
-     * <p>Set this via the constructor.</p>
-     * <p>It's read-only (final data-attribute).</p>
+     * <p>Keep a copy of the command-line arguments provided by the user to run this Batch command.</p>
+     * <p>In the scenario, where a batch command invokes another batch-command, use this to find out what attributes were passed on.</p>
      */
-    public final boolean verbose;
+    protected CmdLineArgsCommon cmdLineArgs;
+
+    // /**
+    //  * <p>Whether you want deluge of debug-output onto System.out.</p>
+    //  * <p>Set this via the constructor.</p>
+    //  * <p>It's read-only (final data-attribute).</p>
+    //  */
+    // public final boolean verbose;
 
     /**
      * This is a private LinkedHashMap&lt;String, LinkedHashMap&lt;String, Object&gt; &gt; memoryAndContext = new LinkedHashMap&lt;&gt;(); .. cannot be null.  Most useful for @see org.ASUX.yaml.BatchYamlProcessor - which allows this this class to lookup !propertyvariable.
@@ -87,24 +87,28 @@ public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
     //=================================================================================
     /**
      *  The constructor exclusively for use by  main() classes anywhere.
-     *  @param _verbose Whether you want deluge of debug-output onto System.out.
-     *  @param _showStats Whether you want a final summary onto console / System.out
+     *  @param _cmdLineArgs NotNull instance of the command-line arguments passed in by the user.
      */
-    public CmdInvoker( final boolean _verbose, final boolean _showStats ) {
-        this( _verbose, _showStats, null );
+    public CmdInvoker( final CmdLineArgsCommon _cmdLineArgs ) {
+        this( _cmdLineArgs, null );
     }
+    // public CmdInvoker( final boolean _verbose, final boolean _showStats ) {
+    //     this( _verbose, _showStats, null );
+    // }
 
+    // *  @param _verbose Whether you want deluge of debug-output onto System.out.
+    // *  @param _showStats Whether you want a final summary onto console / System.out
+    // public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext ) {
     /**
      *  Variation of constructor that allows you to pass-in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.NodeImp.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
-     *  @param _verbose Whether you want deluge of debug-output onto System.out.
-     *  @param _showStats Whether you want a final summary onto console / System.out
+     *  @param _cmdLineArgs NotNull instance of the command-line arguments passed in by the user.
      *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.CollectionImpl.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
      */
-    public CmdInvoker( final boolean _verbose, final boolean _showStats, final MemoryAndContext _memoryAndContext ) {
-        this.verbose = _verbose;
+    public CmdInvoker( final CmdLineArgsCommon _cmdLineArgs, final MemoryAndContext _memoryAndContext ) {
+        this.cmdLineArgs = _cmdLineArgs;
 
         if ( _memoryAndContext == null )
-            this.memoryAndContext = new MemoryAndContext( _verbose, _showStats, this );
+            this.memoryAndContext = new MemoryAndContext( this.cmdLineArgs.verbose, this.cmdLineArgs.showStats, this );
         else
             this.memoryAndContext = _memoryAndContext;
     }
