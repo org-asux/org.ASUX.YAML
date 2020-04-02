@@ -575,75 +575,81 @@ fail();
         final boolean isAWSCFNCmd = cmdStrNM.equals("aws.cfn");
 
         //--------------------------------
-        final String completeCmdLine = _batchCmds.currentLine() + " -i - -o -"; // Adding the '-i' and '-o' is harmless, but required because CmdLineArgs.java will barf otherwise (as CmdLineArgs.java thinks it's being run on commandline by a user)
         // completeCmdLine was enhanced in the above IF-ELSE
-        String[] cmdLineArgsStrArr = convStr2Array( completeCmdLine );
+        // String[] cmdLineArgsStrArr = convStr2Array( completeCmdLine );
 
-        cmdLineArgsStrArr = java.util.Arrays.copyOfRange( cmdLineArgsStrArr, 1, cmdLineArgsStrArr.length ); // get rid of the 'yaml' or 'aws.sdk' word at the beginning of the command
-        final Class[] mainArgsClassList = new Class[] { cmdLineArgsStrArr.getClass() };
-        final Object[] mainArgs         =  new Object[] { cmdLineArgsStrArr };
+        // cmdLineArgsStrArr = java.util.Arrays.copyOfRange( cmdLineArgsStrArr, 1, cmdLineArgsStrArr.length ); // get rid of the 'yaml' or 'aws.sdk' word at the beginning of the command
+        // final Class[] mainArgsClassList = new Class[] { cmdLineArgsStrArr.getClass() };
+        // final Object[] mainArgs         =  new Object[] { cmdLineArgsStrArr };
 
         //--------------------------------
         // We need to invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
         // For that let's gather the Constructor parameter-types and arguments
         String cmdArgsClassNameStr = null;
+        String antlr4ParserClassNameStr = null;
         String implClassNameStr = null;
+
+        // ASUX has multiple COMMAND-FAMILIES: YAML, AWS, CFN, TEXT, .. ..
 
         if ( isYAMLCmd ) {
             cmdArgsClassNameStr = "org.ASUX.yaml.CmdLineArgsCommon";
+            antlr4ParserClassNameStr = "org.ASUX.yaml.YAMLCmdANTLR4Parser";
             implClassNameStr = "org.ASUX.YAML.NodeImpl.CmdInvoker";
         } else if ( isAWSCmd ) {
             cmdArgsClassNameStr = "org.ASUX.AWSSDK.CmdLineArgsAWS";
+            antlr4ParserClassNameStr = "org.ASUX.yaml.AWSSDKCmdANTLR4Parser";
             implClassNameStr = "org.ASUX.AWSSDK.CmdInvoker";
         } else if ( isAWSCFNCmd ) {
             cmdArgsClassNameStr = "org.ASUX.AWS.CFN.CmdLineArgs";
+            antlr4ParserClassNameStr = "org.ASUX.yaml.AWSCFNCmdANTLR4Parser";
             implClassNameStr = "org.ASUX.AWS.CFN.CmdInvoker";
         } else {
             throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
         }
 
-        assertNotNull(cmdArgsClassNameStr);
         if ( this.verbose ) System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
-        assertNotNull(implClassNameStr);
+        assertNotNull(cmdArgsClassNameStr);
+        if ( this.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr ="+ antlr4ParserClassNameStr );
+        assertNotNull(antlr4ParserClassNameStr);
         if ( this.verbose )  System.out.println( HDR +"implClassNameStr ="+ implClassNameStr );
+        assertNotNull(implClassNameStr);
 
         //--------------------------------
         // Do the equivalent of:- new org.ASUX.YAML.NodeImpl.CmdInvoker( this.verbose, this.showStats, .. .. );
         // Do the equivalent of:- new org.ASUX.AWSSDK.CmdInvoker( this.verbose, this.showStats, .. .. );
         try {
-            if ( this.verbose ) System.out.println( HDR +"about to invoke "+ cmdArgsClassNameStr +".create()." );
+            if ( this.verbose ) System.out.println( HDR +"about to invoke "+ antlr4ParserClassNameStr +".constructor()." );
 
-            final Class<?> cmdArgsClass = Cmd.class.getClassLoader().loadClass( cmdArgsClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
-            if ( this.verbose )  System.out.println( HDR +"cmdArgsClassNameStr=["+ cmdArgsClassNameStr +"] successfully loaded using ClassLoader.");
+            //  Just like for YAML, AWS.SDK and AWS.CFN need their own Parser & Grammer.
+            // So, all those ASUX_Projects will have their own EQUIVALENT of YAMLCmdANTLR4Parser, implementing the org.ASUX.language.antlr4.GenericCmdANTLR4Parser interface.
+            // So, the generic code here, is to find out what the equivalent of YAMLCmdANTLR4Parser is.
+            final Class<?> antlr4ParserClass = Cmd.class.getClassLoader().loadClass( antlr4ParserClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
+            if ( this.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr=["+ antlr4ParserClassNameStr +"] successfully loaded using ClassLoader.");
             // // final Object oo2 = org.ASUX.common.GenericProgramming.invokeStaticMethod( cmdArgsClass, "create", mainArgsClassList, mainArgs );
-            // Constructor<?> ctor = cmdArgsClass.getConstructor();
-            // Constructor<?> constructor = cmdArgsClass.getConstructors()[0];
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// new org.ASUX.yaml.CmdLineArgsCommon(); // cannot be done.  As its an Abstract class.
-            // Object oo2 = ctor.newInstance();
+            final Constructor<?> constructor = antlr4ParserClass.getConstructor( boolean.class );
+            // Constructor<?> constructor = antlr4ParserClass.getConstructors()[0]; // <--- for DEFAULT CONSTRUCTOR only
+            final Object oo2 = constructor.newInstance( this.verbose );
+            final org.ASUX.language.antlr4.GenericCmdANTLR4Parser genericCmdANTLR4Parser = (org.ASUX.language.antlr4.GenericCmdANTLR4Parser) oo2;
 
             //--------------------------------------------------------------
-// ????????????
-//  Just like for YAML, AWS.SDK and AWS.CFN need their own Parser & Grammer.
-// So, those 2 Projects will have their own EQUIVALENT of YAMLCmdANTLR4Parser.
-// So, the generic code here, is to find out what the equivalent of YAMLCmdANTLR4Parser is.
-            final ArrayList<CmdLineArgsCommon> cmds =
-                    new YAMLCmdANTLR4Parser( this.verbose ).parseYamlCommandLine( cmdStr_AsIs );
+            final String completeCmdLine = _batchCmds.currentLine() + " -i - -o -"; // Adding the '-i' and '-o' is harmless, but required because CmdLineArgs.java will barf otherwise (as CmdLineArgs.java thinks it's being run on commandline by a user)
+            if ( this.verbose ) System.out.println( HDR +"about to parse completeCmdLine="+ completeCmdLine );
 
-            for ( CmdLineArgsCommon newCmdLineArgsObj: cmds ) {
+            final ArrayList<org.ASUX.language.antlr4.CmdLineArgs> cmds =genericCmdANTLR4Parser.parseYamlCommandLine( completeCmdLine );
+
+            for ( org.ASUX.language.antlr4.CmdLineArgs obj: cmds ) {
+                final CmdLineArgsCommon newCmdLineArgsObj = (CmdLineArgsCommon) obj;
+
                 // ???Cmd???.go( cmd );
-                CmdLineArgsCommon.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
-                // newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-                // newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
-                // newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
+                newCmdLineArgsObj.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+                newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+                newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
+                newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
 
-                // if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
-                //     newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+                if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
+                    newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
 
                 if ( this.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj.toString() );
-
-// We already know what the CMD-FAMILY is: whether YAML, AWS.SDK or AWS.CFN
-// based on that .. invoke the appropriate Cmd above.
 
                 //--------------------------------
                 // We need to invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
@@ -669,6 +675,8 @@ fail();
                 }
 
                 //--------------------------------
+                // we should NOT be invoking Cmd.go() within the appropriate Command-Family.
+                // REASON: We need to pass in "Context" (this.memoryAndContext), "YAML-implementation" object, etc.. ..
                 // Now invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
                 org.ASUX.yaml.CmdInvoker<T> newCmdinvoker;
                 try {
@@ -688,6 +696,7 @@ fail();
                 //     if ( this.verbose ) e.printStackTrace(System.err);
                 //     if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
                 //     throw new BatchFileException( e.getMessage() );
+
                 } catch (Exception e) {
                     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
                     if ( this.verbose ) e.printStackTrace(System.err);
