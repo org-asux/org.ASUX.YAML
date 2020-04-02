@@ -63,25 +63,29 @@ public abstract class BatchCmdProcessor<T> {
     // That is being aware of Sequence in which Property-files are loaded.   Can't do that with HashMap
     protected LinkedHashMap<String,Properties> allProps = BatchCmdProcessor.initProperties();
 
-    /** <p>Whether you want deluge of debug-output onto System.out.</p><p>Set this via the constructor.</p>
-     *  <p>It's read-only (final data-attribute).</p>
-     */
-    protected boolean verbose;
-
-    /** <p>Whether you want a final SHORT SUMMARY onto System.out.</p><p>a summary of how many matches happened, or how many entries were affected or even a short listing of those affected entries.</p>
-     */
-    public final boolean showStats;
-
     /**
-     * @see org.ASUX.yaml.Enums
+     * <p>Keep a copy of the command-line arguments provided by the user to run this Batch command.</p>
+     * <p>In the scenario, where a batch command invokes another batch-command, use this to find out what attributes were passed on.</p>
      */
-    public final Enums.ScalarStyle quoteType;
+    protected CmdLineArgsCommon cmdLineArgs;
 
-
-    /**
-     * True if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
-     */
-    public final boolean offline;
+    // /** <p>Whether you want deluge of debug-output onto System.out.</p><p>Set this via the constructor.</p>
+    //  *  <p>It's read-only (final data-attribute).</p>
+    //  */
+    // protected boolean verbose;
+    //
+    // /** <p>Whether you want a final SHORT SUMMARY onto System.out.</p><p>a summary of how many matches happened, or how many entries were affected or even a short listing of those affected entries.</p>
+    //  */
+    // public final boolean showStats;
+    //
+    // /**
+    //  * @see org.ASUX.yaml.Enums
+    //  */
+    // public final Enums.ScalarStyle quoteType;
+    // /**
+    //  * True if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
+    //  */
+    // public final boolean offline;
 
     protected int runcount = 0;
     protected java.util.Date startTime = null;
@@ -92,27 +96,30 @@ public abstract class BatchCmdProcessor<T> {
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
+    //  *  @param _verbose Whether you want deluge of debug-output onto System.out.
+    //  *  @param _showStats Whether you want a final summary onto console / System.out
+    //  *  @param _offline true if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
+    //  *  @param _quoteType one the values as defined in {@link org.ASUX.yaml.Enums} Enummeration
     /** <p>The only constructor - public/private/protected</p>
-     *  @param _verbose Whether you want deluge of debug-output onto System.out.
-     *  @param _showStats Whether you want a final summary onto console / System.out
-     *  @param _offline true if we pretent no internet-access is available, and we use 'cached' AWS-SDK responses - if available.
-     *  @param _quoteType one the values as defined in {@link org.ASUX.yaml.Enums} Enummeration
+     * @param _cmdLineArgs NotNull instance of the command-line arguments passed in by the user.
      */
-    public BatchCmdProcessor( final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
-        this.verbose = _verbose;
-        this.showStats = _showStats;
-        this.quoteType = _quoteType;
-        this.offline = _offline;
+    // public BatchCmdProcessor( final boolean _verbose, final boolean _showStats, final boolean _offline, final Enums.ScalarStyle _quoteType ) {
+    public BatchCmdProcessor( final CmdLineArgsCommon _cmdLineArgs ) {
+        this.cmdLineArgs = _cmdLineArgs;
+        // this.verbose = _verbose;
+        // this.showStats = _showStats;
+        // this.quoteType = _quoteType;
+        // this.offline = _offline;
 
         // this.allProps.put( FOREACH_PROPERTIES, new Properties() );
         // this.allProps = org.ASUX.common.OSScriptFileScanner.initProperties( this.allProps );
         // this.allProps.put( org.ASUX.common.ScriptFileScanner.GLOBALVARIABLES, new Properties() );
         // this.allProps.put( org.ASUX.common.ScriptFileScanner.SYSTEM_ENV, System.getProperties() );
 
-        // if ( this.verbose ) new Debug(this.verbose).printAllProps(" >>> ", this.allProps);
+        // if ( this.cmdLineArgs.verbose ) new Debug(this.cmdLineArgs.verbose).printAllProps(" >>> ", this.allProps);
     }
 
-    // private BatchCmdProcessor() { this.verbose = false;    this.showStats = true; } // Do Not use this.
+    // private BatchCmdProcessor() { this.cmdLineArgs.verbose = false;    this.cmdLineArgs.showStats = true; } // Do Not use this.
 
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -238,7 +245,7 @@ public abstract class BatchCmdProcessor<T> {
         this.startTime = new java.util.Date();
         // String line = null;
 
-        final BatchFileGrammer batchCmds = new BatchFileGrammer( this.verbose, this.allProps );
+        final BatchFileGrammer batchCmds = new BatchFileGrammer( this.cmdLineArgs.verbose, this.allProps );
         if ( _batchFileName.startsWith("@") ) {
             batchCmds.useDelimiter( System.lineSeparator() );
             // !!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!!  For actual files.. do _NOT_ use ';' as a separator --- for actual files.  see 2 lines below.
@@ -248,14 +255,14 @@ public abstract class BatchCmdProcessor<T> {
 
         try {
             if ( batchCmds.openFile( _batchFileName, true, true ) ) {
-                if ( this.verbose ) System.out.println( HDR + ": go(): successfully opened _batchFileName [" + _batchFileName +"]" );
-                if ( this.showStats ) System.out.println( _batchFileName +" has "+ batchCmds.getCommandCount() );
+                if ( this.cmdLineArgs.verbose ) System.out.println( HDR + ": go(): successfully opened _batchFileName [" + _batchFileName +"]" );
+                if ( this.cmdLineArgs.showStats ) System.out.println( _batchFileName +" has "+ batchCmds.getCommandCount() );
 
                 final T  retNode = this.processBatch( false, batchCmds, _node );
-                if ( this.verbose ) System.out.println( HDR +" go():  retNode =" + retNode +"\n\n");
+                if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" go():  retNode =" + retNode +"\n\n");
 
                 this.endTime = new java.util.Date();
-                if ( this.showStats ) System.out.println( HDR + "Ran "+ this.runcount +" commands from "+ this.startTime +" until "+ this.endTime +" = " + (this.endTime.getTime() - this.startTime.getTime()) +" seconds" );
+                if ( this.cmdLineArgs.showStats ) System.out.println( HDR + "Ran "+ this.runcount +" commands from "+ this.startTime +" until "+ this.endTime +" = " + (this.endTime.getTime() - this.startTime.getTime()) +" seconds" );
                 return retNode;
 
             } else { // if-else openFile()
@@ -263,13 +270,13 @@ public abstract class BatchCmdProcessor<T> {
             }
 
         } catch (BatchFileException bfe) {
-            if ( this.verbose ) bfe.printStackTrace(System.err);
+            if ( this.cmdLineArgs.verbose ) bfe.printStackTrace(System.err);
             System.err.println( bfe +"\n\nERROR while processing: Batch-"+ batchCmds.getState() + "\nERROR: " + bfe.getMessage() );
         } catch(java.io.FileNotFoundException fe) {
-            if ( this.verbose ) fe.printStackTrace(System.err);
+            if ( this.cmdLineArgs.verbose ) fe.printStackTrace(System.err);
             System.err.println( fe +"\n\nERROR: File Not found: within Batch-"+ batchCmds.getState() +".\nSee full-details by re-running command using --verbose cmdline option. " );
         } catch (Exception e) {
-            if ( this.verbose ) e.printStackTrace(System.err);
+            if ( this.cmdLineArgs.verbose ) e.printStackTrace(System.err);
             System.err.println( e +"\n\nERROR: Unexpected Serious Internal ERROR while processing Batch-"+ batchCmds.getState() +".\nERROR: See full-details by re-running command using --verbose cmdline option.");
         }
 
@@ -296,30 +303,30 @@ public abstract class BatchCmdProcessor<T> {
     protected T processBatch( final boolean _bInRecursion, final BatchFileGrammer _batchCmds, T _input )
                         throws BatchFileException, java.io.FileNotFoundException, Exception
     {
-        assertTrue( _batchCmds != null );
-        assertNotNull(_input);
+        assertNotNull( _batchCmds );
+        assertNotNull( _input );
         final String HDR = CLASSNAME +": processBatch(recursion="+ _bInRecursion +","+ _batchCmds.getCmdType() +"): ";
         T tempOutput = null; // it's immediately re-initialized within WHILE-Loop below.
 
-        if ( this.verbose ) System.out.println( HDR +" BEFORE STARTING while-loop.. "+ _batchCmds.hasNextLine() +" re: "+ _batchCmds.getState() +" @ BEGINNING _input="+ _input +"]" );
+        if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" BEFORE STARTING while-loop.. "+ _batchCmds.hasNextLine() +" re: "+ _batchCmds.getState() +" @ BEGINNING _input="+ _input +"]" );
 
         while ( _batchCmds.hasNextLine() )
         {
             _batchCmds.nextLine(); // we can always get the return value of this statement .. via _batchCmds.getCurrentLine()
 
-            if ( this.verbose ) System.out.println( HDR +" START of while-loop for "+ _batchCmds.getState() +" .. for input=["+ toStringDebug(_input) +"]" );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" START of while-loop for "+ _batchCmds.getState() +" .. for input=["+ toStringDebug(_input) +"]" );
 
             // start each loop, with an 'empty' placeholder Map, to collect output of current batch command
             tempOutput = getEmptyYAML();
 
             switch( _batchCmds.getCmdType() ) {
                 case Cmd_MakeNewRoot:
-                    final String newRootElem = Macros.evalThoroughly( this.verbose, _batchCmds.getMakeNewRoot(), this.allProps );
+                    final String newRootElem = Macros.evalThoroughly( this.cmdLineArgs.verbose, _batchCmds.getMakeNewRoot(), this.allProps );
                     tempOutput = getNewSingleYAMLEntry( newRootElem, "", _batchCmds.getQuoteType() ); // Very simple YAML:-    NewRoot: <blank>
                     this.runcount ++;
                     break;
                 case Cmd_SubBatch:
-                    final String bSubBatch = Macros.evalThoroughly( this.verbose, _batchCmds.getSubBatchFile(), this.allProps );
+                    final String bSubBatch = Macros.evalThoroughly( this.cmdLineArgs.verbose, _batchCmds.getSubBatchFile(), this.allProps );
                     tempOutput = this.go( bSubBatch, _input );
 // ????????????????????????????????????????????????????????????????
 // As the above statement stands.. it will NEVER BE used, as 'include' is a far better way of doing SUB-BATCHES.
@@ -330,8 +337,8 @@ public abstract class BatchCmdProcessor<T> {
                     this.runcount ++;
                     break;
                 case Cmd_Foreach:
-                    if ( this.verbose ) System.out.println( HDR +"\t'foreach'_cmd detected'");
-                    if ( this.verbose ) System.out.println( HDR +"InputMap = "+ toStringDebug(_input) );
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"\t'foreach'_cmd detected'");
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"InputMap = "+ toStringDebug(_input) );
                     tempOutput = processFOREACHCmd_Step1( _batchCmds, _input  );
                     // since we processed the lines !!INSIDE!! the 'foreach' --> 'end' block .. via recursion.. we need to skip all those lines here.
                     _batchCmds.skip2MatchingEnd();
@@ -339,7 +346,7 @@ public abstract class BatchCmdProcessor<T> {
                     this.runcount ++;
                     break;
                 case Cmd_End:
-                    if ( this.verbose ) System.out.println( HDR +"found matching 'end' keyword for 'foreach' !!!!!!! \n\n");
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"found matching 'end' keyword for 'foreach' !!!!!!! \n\n");
                     this.runcount ++;
                     return _input;
                     // !!!!!!!!!!!! ATTENTION : Function exits here SUCCESSFULLY / NORMALLY. !!!!!!!!!!!!!!!!
@@ -366,17 +373,17 @@ public abstract class BatchCmdProcessor<T> {
                     this.runcount ++;
                     break;
                 case Cmd_YAMLLibrary:
-                    if ( this.verbose ) System.out.println( HDR +" Setting YAMLLibrary ="+ _batchCmds.getYAMLLibrary() );
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" Setting YAMLLibrary ="+ _batchCmds.getYAMLLibrary() );
                     // this.memoryAndContext.getContext().getYAMLImplementation().setYAMLLibrary( _batchCmds.getYAMLLibrary() );
 System.err.println( HDR +"Not Implemented: The ability to switch YAML libraries within a BATCH Script @ "+ _batchCmds.getState() );
 fail();
                     tempOutput = _input; // as nothing changes re: Input and Output Maps.
                     break;
                 case Cmd_Verbose:
-                    if ( this.verbose ) System.out.println( HDR +" this.verbose = =["+ this.verbose +"] & _batchCmds.getVerbose()=["+ _batchCmds.getVerbose() +"].");
-                    this.verbose = _batchCmds.getBatchVerbose();
-                    _batchCmds.setVerbose( this.verbose );
-                    this.memoryAndContext.setVerbose( this.verbose );
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" this.cmdLineArgs.verbose = =["+ this.cmdLineArgs.verbose +"] & _batchCmds.getVerbose()=["+ _batchCmds.getVerbose() +"].");
+                    this.cmdLineArgs.verbose = _batchCmds.getBatchVerbose();
+                    _batchCmds.setVerbose( this.cmdLineArgs.verbose );
+                    this.memoryAndContext.setVerbose( this.cmdLineArgs.verbose );
                     tempOutput = _input; // as nothing changes re: Input and Output Maps.
                     break;
                 // case Cmd_Sleep:
@@ -396,13 +403,13 @@ fail();
 
             // this line below must be the very last line in the loop
             _input = tempOutput; // because we might be doing ANOTHER iteraton of the While() loop.
-            this.verbose = _batchCmds.getVerbose(); // always keep checking the verbose level, which can change 'implicitly' within _batchCmds / BatchFileGrammerr.java
+            this.cmdLineArgs.verbose = _batchCmds.getVerbose(); // always keep checking the verbose level, which can change 'implicitly' within _batchCmds / BatchFileGrammerr.java
 
-            if ( this.verbose ) System.out.println( HDR +" _________________________ BOTTOM of WHILE-loop: tempOutput =" + toStringDebug(tempOutput) +"");
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" _________________________ BOTTOM of WHILE-loop: tempOutput =" + toStringDebug(tempOutput) +"");
         } // while loop
 
         // !!!!!!!!!!!!!!!!!!! ATTENTION: MOVE FOLLOWING LINE into SUBCLASS
-        if ( this.verbose ) System.out.println( HDR +" ---@END---  tempOutput =" + toStringDebug(tempOutput) +"\n\n");
+        if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" ---@END---  tempOutput =" + toStringDebug(tempOutput) +"\n\n");
         // reached end of file.
         return tempOutput;
     }
@@ -449,7 +456,7 @@ fail();
     //     int recursionLevel = 0;
     //     while ( _batchCmds.hasNextLine() ) {
     //         /* final String line22 = */ _batchCmds.nextLine(); // we do Not care what the line is about.
-    //         if ( this.verbose ) System.out.println( HDR +" skipping cmd "+ _batchCmds.getState() );
+    //         if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" skipping cmd "+ _batchCmds.getState() );
 
     //         final boolean bForEach22 = _batchCmds.isForEachLine();
     //         if ( bForEach22 ) recursionLevel ++;
@@ -473,15 +480,15 @@ fail();
                                     throws Macros.MacroException,  java.io.IOException, Exception
     {
         final String HDR = CLASSNAME +": processSaveToLine(): ";
-        final String saveTo_AsIs = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes(   _batchCmds.getSaveTo()   );
+        final String saveTo_AsIs = new org.ASUX.common.StringUtils(this.cmdLineArgs.verbose).removeBeginEndQuotes(   _batchCmds.getSaveTo()   );
         if ( saveTo_AsIs != null ) {
-            String saveTo = Macros.evalThoroughly( this.verbose, saveTo_AsIs, this.allProps );
-            if ( this.verbose ) System.out.println( HDR +" #1 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
+            String saveTo = Macros.evalThoroughly( this.cmdLineArgs.verbose, saveTo_AsIs, this.allProps );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" #1 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
             final boolean bOkIfMissing = saveTo.startsWith("?"); // that is, the script-file line was:- 'properties kwom=?fnwom'
             saveTo = saveTo.startsWith("?") ? saveTo.substring(1) : saveTo; // remove the '?' prefix from key/lhs string
             // repeat a 2nd time - in case user entered '?' BEFORE the quotes surrounding the SaveTo-path
-            saveTo = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( saveTo );
-            if ( this.verbose ) System.out.println( HDR +" #2 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
+            saveTo = new org.ASUX.common.StringUtils(this.cmdLineArgs.verbose).removeBeginEndQuotes( saveTo );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" #2 saveTo='"+ saveTo +"' and saveTo.startsWith(?)="+ saveTo.startsWith("?") +" saveTo.substring(1)='"+ saveTo.substring(1) + "'" );
 
             if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null )
                 throw new BatchFileException( HDR +" ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory from one line of the batch file to the next.  And a SaveTo line was encountered for ["+ saveTo +"]" );
@@ -517,14 +524,14 @@ fail();
     {
         final String HDR = CLASSNAME +": processUseAsInputLine(): ";
         final String inputFrom_AsIs = _batchCmds.getUseAsInput();
-        String inputFrom = Macros.evalThoroughly( this.verbose, inputFrom_AsIs, this.allProps );
-        if ( this.verbose ) System.out.println( HDR +" #1 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ inputFrom.substring(1) + "'" );
-        inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
+        String inputFrom = Macros.evalThoroughly( this.cmdLineArgs.verbose, inputFrom_AsIs, this.allProps );
+        if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" #1 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ inputFrom.substring(1) + "'" );
+        inputFrom = new org.ASUX.common.StringUtils(this.cmdLineArgs.verbose).removeBeginEndQuotes( inputFrom );
         final boolean bOkIfMissing = inputFrom.startsWith("?"); // that is, the script-file line was:- 'properties kwom=?fnwom'
         inputFrom = inputFrom.startsWith("?") ? inputFrom.substring(1) : inputFrom; // remove the '?' prefix from key/lhs string
         // repeat a 2nd time - in case user entered '?' BEFORE the quotes
-        inputFrom = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( inputFrom );
-        if ( this.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ (inputFrom.length()>0?inputFrom.substring(1):"EMPTYString") + "'" );
+        inputFrom = new org.ASUX.common.StringUtils(this.cmdLineArgs.verbose).removeBeginEndQuotes( inputFrom );
+        if ( this.cmdLineArgs.verbose ) System.out.println( HDR +" #2 inputFrom='"+ inputFrom +"' and inputFrom.startsWith(?)="+ inputFrom.startsWith("?") +" inputFrom.substring(1)='"+ (inputFrom.length()>0?inputFrom.substring(1):"EMPTYString") + "'" );
 
         if ( this.memoryAndContext == null || this.memoryAndContext.getContext() == null )
             throw new BatchFileException( HDR +"ERROR In "+ _batchCmds.getState() +".. This program currently has NO/Zero memory to carry it from one line of the batch file to the next.  And a useAsInput line was encountered for ["+ inputFrom +"]" );
@@ -567,7 +574,7 @@ fail();
         final String HDR = CLASSNAME + ": onAnyCmd(): ";
         final String cmdStr_AsIs = _batchCmds.getCommand();
         assertNotNull(cmdStr_AsIs);
-        final String cmdStrNM = Macros.evalThoroughly( this.verbose, cmdStr_AsIs, this.allProps ).trim();
+        final String cmdStrNM = Macros.evalThoroughly( this.cmdLineArgs.verbose, cmdStr_AsIs, this.allProps ).trim();
         assertNotNull(cmdStrNM);
 
         final boolean isYAMLCmd = cmdStrNM.equals("yaml");
@@ -607,49 +614,51 @@ fail();
             throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
         }
 
-        if ( this.verbose ) System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
+        if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"cmdArgsClassNameStr ="+ cmdArgsClassNameStr );
         assertNotNull(cmdArgsClassNameStr);
-        if ( this.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr ="+ antlr4ParserClassNameStr );
+        if ( this.cmdLineArgs.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr ="+ antlr4ParserClassNameStr );
         assertNotNull(antlr4ParserClassNameStr);
-        if ( this.verbose )  System.out.println( HDR +"implClassNameStr ="+ implClassNameStr );
+        if ( this.cmdLineArgs.verbose )  System.out.println( HDR +"implClassNameStr ="+ implClassNameStr );
         assertNotNull(implClassNameStr);
 
         //--------------------------------
-        // Do the equivalent of:- new org.ASUX.YAML.NodeImpl.CmdInvoker( this.verbose, this.showStats, .. .. );
-        // Do the equivalent of:- new org.ASUX.AWSSDK.CmdInvoker( this.verbose, this.showStats, .. .. );
+        // Do the equivalent of:- new org.ASUX.YAML.NodeImpl.CmdInvoker( this.cmdLineArgs.verbose, this.cmdLineArgs.showStats, .. .. );
+        // Do the equivalent of:- new org.ASUX.AWSSDK.CmdInvoker( this.cmdLineArgs.verbose, this.cmdLineArgs.showStats, .. .. );
         try {
-            if ( this.verbose ) System.out.println( HDR +"about to invoke "+ antlr4ParserClassNameStr +".constructor()." );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"about to invoke "+ antlr4ParserClassNameStr +".constructor()." );
 
             //  Just like for YAML, AWS.SDK and AWS.CFN need their own Parser & Grammer.
             // So, all those ASUX_Projects will have their own EQUIVALENT of YAMLCmdANTLR4Parser, implementing the org.ASUX.language.antlr4.GenericCmdANTLR4Parser interface.
             // So, the generic code here, is to find out what the equivalent of YAMLCmdANTLR4Parser is.
             final Class<?> antlr4ParserClass = Cmd.class.getClassLoader().loadClass( antlr4ParserClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
-            if ( this.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr=["+ antlr4ParserClassNameStr +"] successfully loaded using ClassLoader.");
+            if ( this.cmdLineArgs.verbose )  System.out.println( HDR +"antlr4ParserClassNameStr=["+ antlr4ParserClassNameStr +"] successfully loaded using ClassLoader.");
             // // final Object oo2 = org.ASUX.common.GenericProgramming.invokeStaticMethod( cmdArgsClass, "create", mainArgsClassList, mainArgs );
             final Constructor<?> constructor = antlr4ParserClass.getConstructor( boolean.class );
             // Constructor<?> constructor = antlr4ParserClass.getConstructors()[0]; // <--- for DEFAULT CONSTRUCTOR only
-            final Object oo2 = constructor.newInstance( this.verbose );
+            final Object oo2 = constructor.newInstance( this.cmdLineArgs.verbose );
             final org.ASUX.language.antlr4.GenericCmdANTLR4Parser genericCmdANTLR4Parser = (org.ASUX.language.antlr4.GenericCmdANTLR4Parser) oo2;
 
             //--------------------------------------------------------------
             final String completeCmdLine = _batchCmds.currentLine() + " -i - -o -"; // Adding the '-i' and '-o' is harmless, but required because CmdLineArgs.java will barf otherwise (as CmdLineArgs.java thinks it's being run on commandline by a user)
-            if ( this.verbose ) System.out.println( HDR +"about to parse completeCmdLine="+ completeCmdLine );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"about to parse completeCmdLine="+ completeCmdLine );
 
             final ArrayList<org.ASUX.language.antlr4.CmdLineArgs> cmds =genericCmdANTLR4Parser.parseYamlCommandLine( completeCmdLine );
+            if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"Got "+ cmds.size() +" complete CmdLined" );
 
             for ( org.ASUX.language.antlr4.CmdLineArgs obj: cmds ) {
                 final CmdLineArgsCommon newCmdLineArgsObj = (CmdLineArgsCommon) obj;
+                if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"about to execute command: "+ newCmdLineArgsObj +" " );
 
-                // ???Cmd???.go( cmd );
-                newCmdLineArgsObj.copyBasicFlags( newCmdLineArgsObj, this.verbose, this.showStats, this.offline, this.quoteType ); // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
-                newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
-                newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.showStats;
-                newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.offline;
+                // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
+                newCmdLineArgsObj.copyBasicFlags( this.cmdLineArgs );
+                if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj );
 
-                if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
-                    newCmdLineArgsObj.quoteType = this.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
-
-                if ( this.verbose ) System.out.println( HDR +"newCmdLineArgsObj="+ newCmdLineArgsObj.toString() );
+                // newCmdLineArgsObj.copyBasicFlags( newCmdLineArgsObj, this.cmdLineArgs.verbose, this.cmdLineArgs.showStats, this.cmdLineArgs.offline, this.cmdLineArgs.quoteType );
+                // newCmdLineArgsObj.verbose   = newCmdLineArgsObj.verbose || this.cmdLineArgs.verbose;  // pass on whatever this user specified on cmdline re: --verbose or not.
+                // newCmdLineArgsObj.showStats = newCmdLineArgsObj.showStats || this.cmdLineArgs.showStats;
+                // newCmdLineArgsObj.offline = newCmdLineArgsObj.offline || this.cmdLineArgs.offline;
+                // if ( newCmdLineArgsObj.quoteType == Enums.ScalarStyle.UNDEFINED )
+                //     newCmdLineArgsObj.quoteType = this.cmdLineArgs.quoteType; // if user did NOT specify a quote-option _INSIDE__ batchfile @ current line, then use whatever was specified on CmdLine when starting BATCH command.
 
                 //--------------------------------
                 // We need to invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
@@ -668,8 +677,8 @@ fail();
                 if ( isYAMLCmd || isAWSCmd || isAWSCFNCmd ) {
                     // paramClassList  = new Class[] { boolean.class, boolean.class,           this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsClass() };
                     // methodArgs      = new Object[] { newCmdLineArgsObj.verbose, newCmdLineArgsObj.showStats,          this.memoryAndContext.getContext().getYAMLImplementation().getLibraryOptionsObject() };
-                    paramClassList  = new Class[]  { boolean.class,             boolean.class,                  MemoryAndContext.class };
-                    methodArgs      = new Object[] { this.verbose, this.showStats,    this.memoryAndContext  };
+                    paramClassList  = new Class[]  { CmdLineArgsCommon.class,       MemoryAndContext.class };
+                    methodArgs      = new Object[] { this.cmdLineArgs,              this.memoryAndContext  };
                 } else {
                     throw new BatchFileException( "Unknown Batchfile command ["+ cmdStr_AsIs +"] / ["+ cmdStrNM +"] in "+ _batchCmds.getState() );
                 }
@@ -680,12 +689,12 @@ fail();
                 // Now invoke constructor of the SUB-CLASS of org.ASUX.yaml.CmdInvoker - from the appropriate YAML-Library or AWS-SDK Library.
                 org.ASUX.yaml.CmdInvoker<T> newCmdinvoker;
                 try {
-                    if ( this.verbose ) System.out.println( HDR +"about to invoke "+ implClassNameStr +".constructor()." );
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"about to invoke "+ implClassNameStr +".constructor()." );
 
                     final Class<?> implClass = Cmd.class.getClassLoader().loadClass( implClassNameStr ); // returns: protected Class<?> -- throws ClassNotFoundException
-                    if ( this.verbose )  System.out.println( HDR +"implClassNameStr=["+ implClassNameStr +"] successfully loaded using ClassLoader.");
+                    if ( this.cmdLineArgs.verbose )  System.out.println( HDR +"implClassNameStr=["+ implClassNameStr +"] successfully loaded using ClassLoader.");
                     final Object oo = org.ASUX.common.GenericProgramming.invokeConstructor( implClass, paramClassList, methodArgs );
-                    if ( this.verbose ) System.out.println( HDR +"returned from successfully invoking "+ implClassNameStr +".constructor()." );
+                    if ( this.cmdLineArgs.verbose ) System.out.println( HDR +"returned from successfully invoking "+ implClassNameStr +".constructor()." );
 
                     @SuppressWarnings("unchecked")
                     final org.ASUX.yaml.CmdInvoker<T> tmpObj = (org.ASUX.yaml.CmdInvoker<T>) oo;
@@ -693,14 +702,14 @@ fail();
 
                 // } catch (ClassNotFoundException e) {
                 //     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-                //     if ( this.verbose ) e.printStackTrace(System.err);
-                //     if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+                //     if ( this.cmdLineArgs.verbose ) e.printStackTrace(System.err);
+                //     if ( this.cmdLineArgs.verbose ) System.err.println( HDR + estr +"\n"+ e );
                 //     throw new BatchFileException( e.getMessage() );
 
                 } catch (Exception e) {
                     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-                    if ( this.verbose ) e.printStackTrace(System.err);
-                    if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+                    if ( this.cmdLineArgs.verbose ) e.printStackTrace(System.err);
+                    if ( this.cmdLineArgs.verbose ) System.err.println( HDR + estr +"\n"+ e );
                     throw new BatchFileException( e.getMessage() );
                 }
 
@@ -712,7 +721,7 @@ fail();
                     final YAMLImplementation<T> clone = orig.deepClone();
 
                     newCmdinvoker.setYAMLImplementation( clone );
-                    if (this.verbose) System.out.println( HDR +" set YAML-Library to [" + orig.getYAMLLibrary() + " and [" + newCmdinvoker.getYAMLImplementation().getYAMLLibrary() + "]" );
+                    if (this.cmdLineArgs.verbose) System.out.println( HDR +" set YAML-Library to [" + orig.getYAMLLibrary() + " and [" + newCmdinvoker.getYAMLImplementation().getYAMLLibrary() + "]" );
 
                 } else {
                     // We must have a previous replica of this same IF-ELSE-ELSE above.  So, how come we're still here in this block?
@@ -724,7 +733,7 @@ fail();
                 // We expect the underlying library to generate the object of type T for the return value of newCmdinvoker.processCommand().
                 @SuppressWarnings("unchecked")
                 final T output = (T) newCmdinvoker.processCommand( newCmdLineArgsObj, _input );
-                if (this.verbose) System.out.println( HDR +" processing of command returned [" + (output==null?"null":output.getClass().getName()) + "]" );
+                if (this.cmdLineArgs.verbose) System.out.println( HDR +" processing of command returned [" + (output==null?"null":output.getClass().getName()) + "]" );
                 return output;
 
             } // For (Cmds)
@@ -735,13 +744,13 @@ fail();
             //--------------------------------------------------------------
             // } catch (ClassNotFoundException e) {
             //     final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-            //     if ( this.verbose ) e.printStackTrace(System.err);
-            //     if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+            //     if ( this.cmdLineArgs.verbose ) e.printStackTrace(System.err);
+            //     if ( this.cmdLineArgs.verbose ) System.err.println( HDR + estr +"\n"+ e );
             //     throw new BatchFileException( e.getMessage() );
         } catch (Exception e) {
             final String estr = "ERROR In "+ _batchCmds.getState() +".. Failed to run the command in current line.";
-            if ( this.verbose ) e.printStackTrace(System.err);
-            if ( this.verbose ) System.err.println( HDR + estr +"\n"+ e );
+            if ( this.cmdLineArgs.verbose ) e.printStackTrace(System.err);
+            if ( this.cmdLineArgs.verbose ) System.err.println( HDR + estr +"\n"+ e );
             throw new BatchFileException( e.getMessage() );
         }
     }
@@ -755,21 +764,21 @@ fail();
     {
         final String HDR = CLASSNAME + ": convStr2Array(): ";
         String [] cmdLineArgsStrArr = null;
-        if (this.verbose) System.out.println( HDR +"_cmdStr="+ _cmdStr );
+        if (this.cmdLineArgs.verbose) System.out.println( HDR +"_cmdStr="+ _cmdStr );
         String cmdStrCompacted = _cmdStr.replaceAll("\\s\\s*", " "); // replace multiple spaces with a single space.
         // cmdStrCompacted = cmdStrCompacted.trim(); // no need.  The _batchCmds already took care of it.
-        final String cmdStrNoMacros = Macros.eval( this.verbose, cmdStrCompacted, this.allProps ).trim();
-        if (this.verbose) System.out.println( HDR +"cmdStrCompacted = "+ cmdStrCompacted );
+        final String cmdStrNoMacros = Macros.eval( this.cmdLineArgs.verbose, cmdStrCompacted, this.allProps ).trim();
+        if (this.cmdLineArgs.verbose) System.out.println( HDR +"cmdStrCompacted = "+ cmdStrCompacted );
 
         // https://mvnrepository.com/artifact/com.opencsv/opencsv
         final java.io.StringReader reader = new java.io.StringReader( cmdStrNoMacros );
         final com.opencsv.CSVParser parser = new com.opencsv.CSVParserBuilder().withSeparator(' ').withQuoteChar('\'').withIgnoreQuotations(false).build();
         final com.opencsv.CSVReader cmdLineParser = new com.opencsv.CSVReaderBuilder( reader ).withSkipLines(0).withCSVParser( parser ).build();
         cmdLineArgsStrArr = cmdLineParser.readNext(); // pretend we're reading the 1st line ONLY of a CSV file.
-        if (this.verbose) { System.out.print( HDR +"cmdLineArgsStrArr = ");  for( String s: cmdLineArgsStrArr) System.out.println(s+"\t"); System.out.println(); }
+        if (this.cmdLineArgs.verbose) { System.out.print( HDR +"cmdLineArgsStrArr = ");  for( String s: cmdLineArgsStrArr) System.out.println(s+"\t"); System.out.println(); }
         // some of the strings in this.cmdLineArgsStrArr may still have a starting and ending single/double-quote
-        cmdLineArgsStrArr = new org.ASUX.common.StringUtils(this.verbose).removeBeginEndQuotes( cmdLineArgsStrArr );
-        if (this.verbose) { System.out.print( HDR +"cmdLineArgsStrArr(REMOVEDALLQUOTES) = ");  for( String s: cmdLineArgsStrArr) System.out.print(s+"\t"); System.out.println(); }
+        cmdLineArgsStrArr = new org.ASUX.common.StringUtils(this.cmdLineArgs.verbose).removeBeginEndQuotes( cmdLineArgsStrArr );
+        if (this.cmdLineArgs.verbose) { System.out.print( HDR +"cmdLineArgsStrArr(REMOVEDALLQUOTES) = ");  for( String s: cmdLineArgsStrArr) System.out.print(s+"\t"); System.out.println(); }
         return cmdLineArgsStrArr;
     }
 
