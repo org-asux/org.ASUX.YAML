@@ -81,8 +81,9 @@ public class YAMLPath implements Serializable {
     // Note: These constants are also duplicated into BatchFileGrammer.java
 	public static final String REGEXP_NAMESUFFIX  =     "[${}@%a-zA-Z0-9\\.,:_/-]+";
 	public static final String REGEXP_NAME = "[a-zA-Z$]" + REGEXP_NAMESUFFIX;
-    // public static final String ROOTLEVEL = "<RootLevel:("+ REGEXP_NAME +")>";
+
     public static final String ROOTLEVEL = "/";
+    // public static final String ROOTLEVEL = "<RootLevel:("+ REGEXP_NAME +")>";
 
 	public static final String CLASSNAME = YAMLPath.class.getName();
 
@@ -143,14 +144,19 @@ public class YAMLPath implements Serializable {
         _yp = _yp.trim(); // strip leading and trailing whitesapce (Java11 user strip(), Java<11, use trim()
         if ( _yp.length() <= 0 )
             throw new YAMLPathException( HDR +"semantically EMPTY Pattern (java.util.Pattern compatible) provided ["+ _yp +"]" ); // invalid YAML Path.  Let "this.isValid" stay as false
-        this.delimiter = _delim;
+
+        // If the YAML-Path-string has any beginning and ending quote-characters.. remove them
+        if ( _yp.matches( "^'.+'$" )  || _yp.matches( "^\".+\"$" ) )       // trim() invoked above ensures no white-space AFTER the quote character
+            _yp = _yp.substring( 1, _yp.length() - 1 );
+
         this.yamlPathStr = _yp; //save it
+        this.delimiter = _delim;
         this.prntDelimiter = DEFAULTPRINTDELIMITER; // _delim.replaceAll("\\\\", ""); // save it in human-readable form (to print out paths -- and for NO OTHER purpose)
         // System.out.println( "x\\.y".replaceAll​("\\\\", "") );
 
         // Sanity check of "_delim"
         try {
-            Pattern p = Pattern.compile(_delim);
+            /* Pattern p = */ Pattern.compile(_delim);
         }catch(PatternSyntaxException e){
             if ( _verbose ) e.printStackTrace(System.err);
             System.err.println( HDR +" Invalid delimiter-pattern '"+ _delim +"' provided to constructor " );
@@ -160,8 +166,9 @@ public class YAMLPath implements Serializable {
         if (this.verbose) System.out.println( HDR +" Sanity check completed for yp=["+ _yp +"]" );
         //        boolean b = Pattern.matches("a*b", "aaaaab");
 
-        if (this.verbose) System.out.println( HDR +" about to split '"+_yp+"' with delimiter '"+_delim+"'");
-        this.yamlElemArr = _yp.split(_delim);
+        final String delim = ( ".".equals(_delim) ) ? "\\." : _delim;
+        if (this.verbose) System.out.println( HDR +" about to split '"+_yp+"' with delimiter '"+ delim +"'");
+        this.yamlElemArr = _yp.split( delim );
 
         if (this.verbose) System.out.println( HDR +" this.yamlElemArr has length '"+this.yamlElemArr.length+"'");
         if (this.verbose) {
@@ -183,7 +190,7 @@ public class YAMLPath implements Serializable {
                         this.yamlElemArr[ix] = elem;
                     }
                     if (this.verbose) System.out.println( HDR +" YAML-element='"+ this.yamlElemArr[ix] +"'.");
-                    final Pattern p = Pattern.compile(elem); // not using this, but if 'elem' is invalid, exception thrown
+                    /* final Pattern p = */ Pattern.compile(elem); // not using this, but if 'elem' is invalid, exception thrown
                 }
             }catch(PatternSyntaxException e){
                 if ( this.verbose ) e.printStackTrace(System.err);
@@ -191,7 +198,7 @@ public class YAMLPath implements Serializable {
             }
         } // for
 
-        this.isValid = (this.yamlElemArr.length > 0) ? true : false;
+        this.isValid = (this.yamlElemArr.length > 0);
         this.indexPtr = (this.yamlElemArr.length > 0) ? 0 : -1;
     } // Constructor
 
@@ -214,17 +221,14 @@ public class YAMLPath implements Serializable {
     }
 
     //=======================================================================
-    /** For example strings like "<code>paths.*.*.responses.200</code>", your first call will return true.  If you call {@link next} <b>up to 4 times</b>, this function will return true.  After you call next() a 5th time, this function will return false.
-     *  @return true means {@link get} will return a valid string, GUARANTEED to NOT Throw any runtime exception :-)
+    /** For example strings like "<code>paths.*.*.responses.200</code>", your first call will return true.  If you call {@link #next()} <b>up to 4 times</b>, this function will return true.  After you call next() a 5th time, this function will return false.
+     *  @return true means {@link #get()} will return a valid string, GUARANTEED to NOT Throw any runtime exception :-)
      */
     public boolean hasNext() {
         // final String HDR = CLASSNAME +": hasNext():";
         // System.out.println( HDR +"hasNext(): Starting.");
         if ( ! this.isValid ) return false;
-        if ( this.indexPtr < this.yamlElemArr.length )
-            return true;
-        else
-            return false;
+        return this.indexPtr < this.yamlElemArr.length;
     }
 
     /** For example strings like "<code>paths.*.*.responses.200</code>", your <b>1st 5 invocations</b> will make this object point to valid Path-Elements (call {@link #get} to get those valid Path-Element-strings.  After you call <code>next()</code> a 6th time (for same example), this object will point to null(String) and from then onwards, {@link #get} will return null.
@@ -239,7 +243,6 @@ public class YAMLPath implements Serializable {
         if ( this.hasNext() ) {
             this.indexPtr ++;
         }
-        return;
     }
 
 
@@ -252,7 +255,6 @@ public class YAMLPath implements Serializable {
         // for ( int ix=index(); ix< this.yamlElemArr.length; ix++ )
         //     ypNoMatches.next(); // if we loop all the way to 'this.yamlElemArr.length' then we'll end up with this,index() pointing WELL beyond the 
         this.indexPtr = this.yamlElemArr.length - 1;
-        return;
     }
 
     //=======================================================================
@@ -282,10 +284,7 @@ public class YAMLPath implements Serializable {
      */
     public int index() {
         if ( ! this.isValid ) return -1;
-        if ( this.indexPtr < this.yamlElemArr.length )
-            return this.indexPtr;
-        else
-            return this.yamlElemArr.length;
+        return Math.min( this.indexPtr, this.yamlElemArr.length );
     }
 
     /** For example strings like "<code>paths.*.*.responses.200</code>", before your 1st call to next(), this function will return ""(empty string).  After the 1st call to next(), this function will return "paths".  After the 2nd call to next(), this will return "paths.*".  After you call next() a 5th time (or more), this function will return "<code>paths.*.*.responses.200</code>".
@@ -294,13 +293,13 @@ public class YAMLPath implements Serializable {
     public String getPrefix() {
         if ( ! this.isValid ) return null;
         if ( this.indexPtr < this.yamlElemArr.length ) {
-            String retstr = "";
+            final StringBuilder retStrBldr = new StringBuilder();
             // Compiler error: local variables referenced from a lambda expression must be final or effectively final
-            // IntStream.range(0, this.indexPtr).forEach(i -> retstr+= this.yamlElemArr[i]);
+            // IntStream.range(0, this.indexPtr).forEach(i -> retStr += this.yamlElemArr[i]);
             final int[] range = IntStream.range(0, this.indexPtr).toArray();
             for(int ix : range )
-                retstr += this.yamlElemArr[ix] + this.prntDelimiter;
-            return retstr;
+                retStrBldr.append(  this.yamlElemArr[ix] ).append( this.prntDelimiter );
+            return retStrBldr.toString();
         }else{
             return null; // We've a problem if we're here
         }
@@ -315,10 +314,7 @@ public class YAMLPath implements Serializable {
             if ( this.indexPtr <= 0 ) {
                 return false; // We are the beginning of the YAML path.  So, SEMANTICALLY false!
             } else {
-                if ( this.yamlElemArr[ this.indexPtr - 1 ].equals("**") )
-                    return true;
-                else
-                    return false;
+                return ( "**".equals( this.yamlElemArr[this.indexPtr - 1] ) );
             }
         }else{
             return false; // We've a problem if we're here
@@ -331,13 +327,13 @@ public class YAMLPath implements Serializable {
     public String getSuffix() {
         if ( ! this.isValid ) return null;
         if ( this.indexPtr < this.yamlElemArr.length ) {
-            String retstr = "";
+            final StringBuilder retStrBldr = new StringBuilder();
             // Compiler error: local variables referenced from a lambda expression must be final or effectively final
             // IntStream.range(this.indexPtr, this.yamlElemArr.length).forEach(i -> retstr+= this.yamlElemArr[i]);
             int[] range = IntStream.range(this.indexPtr, this.yamlElemArr.length).skip(1).toArray();
             for(int ix : range )
-                retstr += this.prntDelimiter + this.yamlElemArr[ix];
-            return retstr;
+                retStrBldr.append( this.prntDelimiter ).append( this.yamlElemArr[ix] );
+            return retStrBldr.toString();
         }else{
             return null; // We've a problem if we're here
         }
