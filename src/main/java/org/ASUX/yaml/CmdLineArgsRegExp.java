@@ -53,7 +53,7 @@ public class CmdLineArgsRegExp extends org.ASUX.yaml.CmdLineArgsCommon {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //These reflect the user's commandline options
     public String yamlRegExpStr = "undefined";
-    public String yamlPatternDelimiter = ".";
+    public String yamlPatternDelimiter = "/";
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /** For making it easy to have simple code generate debugging-output, added this toString() method to this class.
