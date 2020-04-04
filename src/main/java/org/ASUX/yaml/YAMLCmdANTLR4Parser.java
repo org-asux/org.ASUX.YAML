@@ -267,7 +267,7 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
             if ( this.verbose ) System.out.println( HDR + "about to parse" );
             YAMLANTLR4Parser.Yaml_commandsContext allCmdsCtx = null;
             try {
-                defaultParser.yaml_commands();  // if the grammer/scenario restricted user-input to JUST 1 command ONLY.
+                allCmdsCtx = defaultParser.yaml_commands();  // if the grammer/scenario restricted user-input to JUST 1 command ONLY.
             } catch( org.antlr.v4.runtime.misc.ParseCancellationException e ) {
                 if ( this.verbose ) e.printStackTrace( System.out );
                 final String tokensSuccessfullyParsedSoFar = myParseListener.getTokensSuccessfullyParsedSoFar();
@@ -318,11 +318,8 @@ public class YAMLCmdANTLR4Parser implements org.ASUX.language.antlr4.GenericCmdA
                     if ( readCtx.projectionpath() == null ) {
                         if (this.verbose) System.out.println(HDR + "Read-YAML's ProjectionPath is missing on command-line ");
                     } else {
-                        final ArrayList<String> sss77 = util.toStrings( readCtx.projectionpath() );
-                        // assertEquals( sss77.size(), 1);
-                        final String s7 = sss77.get(0);
-                        if (this.verbose) System.out.println(HDR + "Read-YAML's ProjectionPath =[" + s7 + "] ");
-                        carg.projectionPath = s7;
+                        carg.projectionPath = readCtx.projectionpath().getText();
+                        if (this.verbose) System.out.println(HDR + "Read-YAML's ProjectionPath =[" + carg.projectionPath + "] ");
                     }
 
                     // Cmd.go( carg );
