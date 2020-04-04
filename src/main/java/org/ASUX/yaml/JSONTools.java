@@ -79,15 +79,22 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
     public static LinkedHashMap<String, Object>  JSONString2Map(final boolean _verbose, final String  _jsonString )
                     throws java.io.IOException, Exception
     {
-        // We're going to alter the contents of '_jsonString', even as we need the original as-is value for debug-statements and error-messages.
-        String wellFormedJSONString = _jsonString;
+        // We're going to alter the contents of '_jsonString', even as we need the original '_jsonString' as-is value for debug-statements and error-messages.
+        String wellFormedJSONString = _jsonString.trim();
 
-        if ( _jsonString.contains("=") && ! _jsonString.contains(":") ) {
+        // If the JSON-string has any beginning and ending quote-characters.. remove them
+        if ( wellFormedJSONString.matches( "^['\"]\\s*\\{.+" ) )       // trim() invoked above ensures no white-space before the quote character
+            wellFormedJSONString = wellFormedJSONString.substring( 1 );
+        if ( wellFormedJSONString.matches( ".+\\}\\s*['\"]$" ) )       // trim() invoked above ensures no white-space AFTER the quote character
+            wellFormedJSONString = wellFormedJSONString.substring( 0, wellFormedJSONString.length() - 1 );
+
+        if ( wellFormedJSONString.contains("=") && ! wellFormedJSONString.contains(":") ) {
             // WEll! it means the entire string in Key=Value format.   Not in proper Key:Value JSON format.
-            wellFormedJSONString = _jsonString.replaceAll("=", ": "); // fingers crossed. I hope this works.
+            wellFormedJSONString = wellFormedJSONString.replaceAll("=", ": "); // fingers crossed. I hope this works.
         } else {
-            wellFormedJSONString = _jsonString.replaceAll(":", ": "); // Many libraries do NOT like  'key:value'.  They want a blank after colon like 'key: value'
+            wellFormedJSONString = wellFormedJSONString.replaceAll(":", ": "); // Many libraries do NOT like  'key:value'.  They want a blank after colon like 'key: value'
         }
+
         if ( _verbose ) System.out.println(">>>>>>>>>>>>>>>>>>>> "+ CLASSNAME+": JSONString2Map(): "+ wellFormedJSONString);
 
         try {
