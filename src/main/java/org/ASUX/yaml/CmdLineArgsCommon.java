@@ -36,16 +36,14 @@ package org.ASUX.yaml;
  *  <p>This class has No other function - other than to parse the commandline arguments and handle user's input errors.</p>
  *  <p>For making it easy to have simple code generate debugging-output, added a toString() method to this class.</p>
  *  <p>Typical use of this class is to code a sub-class and use the sub-class in 3-steps: </p>
- *<pre>
-public static void main(String[] args) {
-    final CmdLineArgs cla = new CmdLineArgs();
-    cla.define();
-    cla.parse(args);
-    .. ..
- *</pre>
  *
- *  <p>See full details of how to use this, in {@link org.ASUX.yaml.Cmd} as well as the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
- * @see org.ASUX.yaml.Cmd
+ *  <p>See full details of how to invoke this Java-code, in {@link org.ASUX.yaml.Cmd} as well as command-line invocation at the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com project.</p>
+ * @see org.ASUX.yaml.CmdLineArgsReadCmd
+ * @see org.ASUX.yaml.CmdLineArgsInsertCmd
+ * @see org.ASUX.yaml.CmdLineArgsReplaceCmd
+ * @see org.ASUX.yaml.CmdLineArgsTableCmd
+ * @see org.ASUX.yaml.CmdLineArgsMacroCmd
+ * @see org.ASUX.yaml.CmdLineArgsBatchCmd
  */
 public abstract class CmdLineArgsCommon implements org.ASUX.language.antlr4.CmdLineArgs,    java.io.Serializable  {
 
