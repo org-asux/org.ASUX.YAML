@@ -60,7 +60,7 @@ import static org.junit.Assert.assertTrue;
  * </p>
  * 
  * @see org.ASUX.yaml.YAMLPath
- * @see org.ASUX.yaml.CmdLineArgs
+ * @see org.ASUX.yaml.CmdLineArgsCommon
  */
 public class Cmd {
 
@@ -121,11 +121,11 @@ public class Cmd {
             // Basically, bottomline: This method does NOT have to invoke <implMainEntryClass>.startYAMLImplementation().
 
         } catch (ClassNotFoundException e2) {
-            e2.printStackTrace(System.err); // main() unit-testing
+            e2.printStackTrace(System.err);
             System.err.println( "\n\nInternal Error!\t"+ HDR +" error(ClassNotFoundException): '" + _cmdLineArgs + "'.");
             System.exit(6);
         } catch (Throwable t) {
-            t.printStackTrace(System.err); // main() unit-testing
+            t.printStackTrace(System.err);
             System.err.println( "\n\nInternal Error!\t"+ HDR +" for '" + _cmdLineArgs + "'.");
             System.exit(6);
         }
@@ -152,7 +152,7 @@ public class Cmd {
 
 // System.err.println("cmdLineArgsBasic.verbose="+cmdLineArgsBasic.verbose);
 
-            if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"arguments ="+ cmdLineArgsBasic );
+            if ( cmdLineArgsBasic.verbose )  System.out.println(HDR + "arguments ="+ cmdLineArgsBasic );
 
             final ArrayList<org.ASUX.language.antlr4.CmdLineArgs> cmds =
                     new YAMLCmdANTLR4Parser( cmdLineArgsBasic.verbose ).parseYamlCommandLine( String.join(" ", args));
@@ -192,7 +192,7 @@ public class Cmd {
             // // Basically, bottomline: This method does NOT have to invoke <implMainEntryClass>.startYAMLImplementation().
 
         } catch (Throwable t) {
-            t.printStackTrace(System.err); // main() unit-testing
+            t.printStackTrace(System.err);
             System.err.println( "\n\nInternal Error!\t"+ HDR +" for '" + cmdLineArgsBasic + "'.");
             System.exit(6);
         }
