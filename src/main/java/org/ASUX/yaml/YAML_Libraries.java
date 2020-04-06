@@ -32,6 +32,8 @@
 
 package org.ASUX.yaml;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import static org.junit.Assert.*;
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -50,12 +52,25 @@ import static org.junit.Assert.*;
  */
 public enum YAML_Libraries
 {
-    ESOTERICSOFTWARE_Library ("com.esotericsoftware.yamlbeans"),
+    @JsonProperty("SnakeYAML")
     SNAKEYAML_Library ("SnakeYAML"),
+
+    @JsonProperty("org.yaml.snakeyaml")
     ORGSNAKEYAML_Library ("org.yaml.snakeyaml"),
-    CollectionsImpl_Library ("CollectionsImpl"),
+
+    @JsonProperty("NodeImpl")
     NodeImpl_Library ("NodeImpl"),
+
+    @JsonProperty("esotericsoftware")
+    ESOTERICSOFTWARE_Library ("com.esotericsoftware.yamlbeans"),
+
+    @JsonProperty("CollectionsImpl")
+    CollectionsImpl_Library ("CollectionsImpl"),
+
+    @JsonProperty("org.ASUX.yaml")
     ASUXYAML_Library ("org.ASUX.yaml"),
+
+    @JsonProperty("undefined")
     UNDEFINED("undefined")
     ;
 

@@ -32,7 +32,7 @@
 
 package org.ASUX.yaml;
 
-import static org.junit.Assert.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 /**
@@ -48,18 +48,30 @@ public final class Enums
     //=================================================================================
 
     public enum ScalarStyle {
+
+        @JsonProperty("\"")
         DOUBLE_QUOTED('"'),
+
+        @JsonProperty("'")
         SINGLE_QUOTED('\''),
+
+        @JsonProperty("|")
         LITERAL( '|'),
+
+        @JsonProperty(">")
         FOLDED('>'),
-        PLAIN(null),   // <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!! 
+
+        @JsonProperty("none")
+        PLAIN(null),   // <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!  <<------- null !!!!!!!
+
+        @JsonProperty("undefined")
         UNDEFINED('?');
 
         public static final String CLASSNAME = Enums.class.getName();
 
         private Character styleChar;
 
-        private ScalarStyle(Character style) { this.styleChar = style; }
+        ScalarStyle(Character style) { this.styleChar = style; }
 
         public Character getChar() { return styleChar; }
 
@@ -112,11 +124,11 @@ public final class Enums
          */
         public static String list( final String _delim ) {
             // return ""+ ESOTERICSOFTWARE_Library +_delim+ SNAKEYAML_Library +_delim+ ASUXYAML_Library;
-            String retval = "";
+            final StringBuilder retval = new StringBuilder();
             for (ScalarStyle typeitem : ScalarStyle.values()) {
-                retval += typeitem.toString() + _delim;
+                retval.append( typeitem.toString() ).append( _delim );
             }
-            return retval;
+            return retval.toString();
         }
 
     } // Enum ScalarStyle
@@ -129,18 +141,45 @@ public final class Enums
      */
     public enum CmdEnum {
 
-        READ("read"), LIST("list"), DELETE("delete"), INSERT("insert"), REPLACE("replace"), TABLE("table"), MACRO("macro"), MACROYAML("macroyaml"), BATCH("batch"), UNKNOWN("unknown");
+        @JsonProperty("read")
+        READ("read"),
+
+        @JsonProperty("list")
+        LIST("list"),
+
+        @JsonProperty("delete")
+        DELETE("delete"),
+
+        @JsonProperty("insert")
+        INSERT("insert"),
+
+        @JsonProperty("replace")
+        REPLACE("replace"),
+
+        @JsonProperty("table")
+        TABLE("table"),
+
+        @JsonProperty("macro")
+        MACRO("macro"),
+
+        @JsonProperty("macroyaml")
+        MACROYAML("macroyaml"),
+
+        @JsonProperty("batch")
+        BATCH("batch"),
+
+        UNKNOWN("unknown");
 
         private final String internalValue;
         public static final String CLASSNAME =CmdEnum.class.getName();
 
         //=================================
-        /** <p>This constructor is private.  the right way to create new objects of this enum are via the {@link #fromString}.</p>
+        /** <p>This constructor is private.  the right way to create new objects of this enum are via the {@link #valueOf(String)}  or {@link #fromString}.</p>
          * <p>For Enums based on strings, you need a constructor like this.  Only reason: To save the parameter as an internal variable.</p>
          * <p>Per Java language spec, this constructor is private (as I understand it)</p>
-         * @param _i
+         * @param _i NotNull String, that should ideally be converted via {@link #valueOf(String)}  or {@link #fromString}
          */
-        private CmdEnum(final String _i) {
+        CmdEnum( final String _i ) {
             this.internalValue = _i;
         }
 
@@ -179,11 +218,11 @@ public final class Enums
          */
         public static String list( final String _delim ) {
             // return ""+ ESOTERICSOFTWARE_Library +_delim+ SNAKEYAML_Library +_delim+ ASUXYAML_Library;
-            String retval = "";
+            final StringBuilder retval = new StringBuilder();
             for (CmdEnum typeitem : CmdEnum.values()) {
-                retval += typeitem.toString() + _delim;
+                retval.append( typeitem.toString() ).append( _delim );
             }
-            return retval;
+            return retval.toString();
         }
     }
 
@@ -195,4 +234,4 @@ public final class Enums
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //=================================================================================
 
-};
+}
