@@ -32,7 +32,12 @@
 
 package org.ASUX.yaml;
 
+// import com.fasterxml.jackson.core.JsonParseException;
+// import com.fasterxml.jackson.databind.JsonMappingException;
+
 import java.util.LinkedHashMap;
+
+import static org.junit.Assert.fail;
 
 /**
  *  <p>This class is a bunch of tools to help make it easy to work with the java.util.Map objects that the YAML library creates.</p>
@@ -111,14 +116,12 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
             // retMap2 = this.lintRemoverMap( retMap2 ); // this will 'clean/lint-remove'
             return retMap2;
 
-        } catch (com.fasterxml.jackson.core.JsonParseException e) {
-            if (_verbose) e.printStackTrace(System.out);
-            if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
-            throw e;
-        } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
-            if (_verbose) e.printStackTrace(System.out);
-            if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
-            throw e;
+        // FYI: JsonParseException & JsonMappingException are both Sub-classes of java.io.IOException
+        // } catch ( JsonParseException | JsonMappingException e) {
+        //     if (_verbose) e.printStackTrace(System.out);
+        //     if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
+        //     throw e;
+
         } catch (java.io.IOException e) {
             if (_verbose) e.printStackTrace(System.out);
             if (_verbose) System.out.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonString +"] after converting to ["+ wellFormedJSONString +"]" );
@@ -129,5 +132,108 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
     //==============================================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
+
+    /**
+     * <p>Method to ingest JSON and convert it into an object of type {@link CmdLineArgsCommon} or it's subclasses.</p>
+     * <p>In addition to the command-line UI for an user to process YAML, this offers a JS/Node.js interface that relies on JSON as input (instead of String).</p>
+     * @param _verbose Whether you want deluge of debug-output onto System.out.
+     * @param _jsonAsString NotNull String containing _VALID_ JSON.  See ASUX.org WIKI for full details.
+     * @throws Exception If any errors parsing the contents of the JSON provided as argument
+     */
+    public static CmdLineArgsCommon toCmdLineArgs( final boolean _verbose, String _jsonAsString ) throws Exception
+    {   final String HDR = CLASSNAME +": toCmdLineArgs(_verbose, _jsonAsString): ";
+        if ( _verbose ) System.out.print( HDR + "_jsonAsString = ["+ _jsonAsString +"]" );
+
+        // Step 1: Read the JSON String into a java.util.Map object.  Leverage other methods in this class
+        // Step 2: Do some sanity checks on the JSON.  More importantly, figure out what the YAML command is.. so the appropriate Subclass of CmdLineArgsCommon can be created.
+        // Step 3: Re-Read the JSON String into the appropriate subclass of CmdLineArgsCommon
+
+        try {
+
+            // Step 1
+            // String testJson = "{\n" + "  \"user\": {\n" + "    \"0\": {\n" + "      \"firstName\": \"Monica\",\n" + "      \"lastName\": \"Belluci\"\n" + "    },\n" + "    \"1\": {\n" + "      \"firstName\": \"John\",\n" + "      \"lastName\": \"Smith\"\n" + "    },\n" + "    \"2\": {\n" + "      \"firstName\": \"Owen\",\n" + "      \"lastName\": \"Hargreaves\"\n" + "    }\n" + "  }\n" + "}";
+            final LinkedHashMap<String, Object> jsonMap = JSONString2Map( _verbose, _jsonAsString );
+
+            // Step 2
+            final Object valObj = jsonMap.get( "cmdType" );
+            String errMsg = "ERROR: Missing or invalid 'cmdType' within JSON provided!  Found ["+ valObj +"] within:\n" + _jsonAsString + "";
+
+            if ( !( valObj instanceof String ) ) {
+                System.err.println( errMsg );
+                throw new Exception( errMsg );
+            }
+            final String cmdTypeStr = (String) jsonMap.get( "cmdType" ); // guaranteed to succeed because of above IF statement.
+            Enums.CmdEnum cmdType = Enums.CmdEnum.fromString( cmdTypeStr );
+            if ( cmdType == Enums.CmdEnum.UNKNOWN ) {
+                System.err.println( errMsg );
+                throw new Exception( errMsg );
+            }
+
+            // Step 3  (see comments at the top of this method)
+            com.fasterxml.jackson.databind.ObjectMapper objMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objMapper.configure( com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true );
+            objMapper.configure( com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+            objMapper.enable( com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS );
+            CmdLineArgsCommon cmd = null;
+            switch( cmdType ) {
+                case READ:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsReadCmd.class );
+                    break;
+                case LIST:
+                case DELETE:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsRegExp.class );
+                    break;
+                case INSERT:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsInsertCmd.class );
+                    break;
+                case REPLACE:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsReplaceCmd.class );
+                    break;
+                case TABLE:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsTableCmd.class );
+                    break;
+                case MACRO:
+                case MACROYAML:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsMacroCmd.class );
+                    break;
+                case BATCH:
+                    cmd = objMapper.readValue( _jsonAsString, CmdLineArgsBatchCmd.class );
+                    break;
+                default: fail();
+            }
+
+            if ( _verbose ) System.out.print( HDR + "Cmd = ["+ cmd +"]" );
+            return cmd;
+
+        } catch (java.io.IOException e) {
+            if (_verbose) e.printStackTrace(System.out);
+            System.err.println( CLASSNAME+": JSONString2Map(): Failed to parse ["+ _jsonAsString +"]" );
+            throw e;
+        }
+    }
+
+    //==============================================================================
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //==============================================================================
+
+    public static void main( String[] args) {
+        final String HDR = CLASSNAME + ": main(): ";
+        try {
+            boolean verbose = false;
+            int ix = 0;
+            if ( "--verbose".equals(args[0]) ) {
+                ix ++;
+                verbose = true;
+            }
+            final org.ASUX.common.ConfigFileScannerL3 o = new org.ASUX.common.ScriptFileScanner( verbose );
+            o.openFile( args[ix], true, true );
+            final String jsonString = o.toString();
+            /* final CmdLineArgsCommon cmdLineArgsCommon = */ JSONTools.toCmdLineArgs( verbose, jsonString );
+        } catch (Exception e) {
+            e.printStackTrace(System.err); // main().  For Unit testing
+            System.err.println( HDR + "Unexpected Internal ERROR, while processing " + ((args==null || args.length<=0)?"[No CmdLine Args":args[0]) +"]" );
+            System.exit(91); // This is a serious failure. Shouldn't be happening.
+        }
+    }
 
 }
