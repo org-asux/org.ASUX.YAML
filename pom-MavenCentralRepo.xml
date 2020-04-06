@@ -7,8 +7,10 @@
 	<groupId>org.asux</groupId>
 	<artifactId>yaml</artifactId>
     
-    <version>1.0</version>
+    <version>1.1</version>
 	<packaging>jar</packaging>
+    <!-- v1.1 Switched from org.apache.commons.cli to ALTLR4, to parse command-lines. Major simplification changes to CmdLineArgs and it subclasses -->
+    <!-- v1.0 Original release.  Robust code base.  Well tested for both SnakeYAML and EsotericSoftware-based ContainerImpl -->
 
     <inceptionYear>2019</inceptionYear>
     <description>Cmdline interface to process YAML files, leveraging the brilliantly robust gitbub project  github.com:esotericsoftware/yamlbeans.git (which is a Java object graphs, to and from YAML)</description>
