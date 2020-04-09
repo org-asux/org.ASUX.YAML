@@ -63,11 +63,12 @@ public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
 
     protected transient YAMLImplementation<T> yamlImpl = null; // will not be covered _AUTOMATICALLY_ by deepClone()
 
-    // /**
-    //  * <p>Keep a copy of the command-line arguments provided by the user to run this Batch command.</p>
-    //  * <p>In the scenario, where a batch command invokes another batch-command, use this to find out what attributes were passed on.</p>
-    //  */
-    // protected CmdLineArgsCommon cmdLineArgs;
+    /**
+     * <p>Keep a copy of the command-line arguments provided by the user to run this Batch command.</p>
+     * <p>Most common use of this instance-variable - is subclasses can get verbosity-level (as cmdLineArgs.verbose)</p>
+     * <p>In the scenario, where a batch command invokes another batch-command, use this to find out what attributes were passed on.</p>
+     */
+    protected CmdLineArgsCommon cmdLineArgs;
 
     // /**
     //  * <p>Whether you want deluge of debug-output onto System.out.</p>
@@ -105,7 +106,7 @@ public abstract class CmdInvoker<T> implements java.io.Serializable, Cloneable {
      *  @param _memoryAndContext pass in memory from another previously existing instance of this class.  Useful within org.ASUX.YAML.CollectionImpl.BatchYamlProcessor which creates new instances of this class, whenever it encounters a YAML or AWS command within the Batch-file.
      */
     public CmdInvoker( final CmdLineArgsCommon _cmdLineArgs, final MemoryAndContext _memoryAndContext ) {
-        // this.cmdLineArgs = _cmdLineArgs;
+        this.cmdLineArgs = _cmdLineArgs;
 
         if ( _memoryAndContext == null )
             this.memoryAndContext = new MemoryAndContext( _cmdLineArgs.verbose, _cmdLineArgs.showStats, this );
