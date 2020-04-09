@@ -216,24 +216,8 @@ public abstract class JSONTools implements java.io.Serializable, Cloneable {
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     //==============================================================================
 
-    public static void main( String[] args) {
-        final String HDR = CLASSNAME + ": main(): ";
-        try {
-            boolean verbose = false;
-            int ix = 0;
-            if ( "--verbose".equals(args[0]) ) {
-                ix ++;
-                verbose = true;
-            }
-            final org.ASUX.common.ConfigFileScannerL3 o = new org.ASUX.common.ScriptFileScanner( verbose );
-            o.openFile( args[ix], true, true );
-            final String jsonString = o.toString();
-            /* final CmdLineArgsCommon cmdLineArgsCommon = */ JSONTools.toCmdLineArgs( verbose, jsonString );
-        } catch (Exception e) {
-            e.printStackTrace(System.err); // main().  For Unit testing
-            System.err.println( HDR + "Unexpected Internal ERROR, while processing " + ((args==null || args.length<=0)?"[No CmdLine Args":args[0]) +"]" );
-            System.exit(91); // This is a serious failure. Shouldn't be happening.
-        }
-    }
+    // public static void main( String[] args) {
+    //     // see JSONInterface.java
+    // }
 
 }
