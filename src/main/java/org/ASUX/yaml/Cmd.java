@@ -33,16 +33,14 @@
 package org.ASUX.yaml;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
 /**
- * <p> This org.ASUX.yaml GitHub.com project and the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com projects.
- * </p>
- * <p> This is technically an independent class, but it is semantically a 'SUPER/PARENT' class of org.ASUX.yaml.CollectionsImpl.Cmd and org.ASUX.yaml.NodeImpl.Cmd</p>
+ * <p> This org.ASUX.yaml GitHub.com project and the <a href="https://github.com/org-asux/org.ASUX.cmdline">org.ASUX.cmdline</a> GitHub.com projects.</p>
+ * <p>This class represents one of the 2 interfaces: (1) CommandLine (this) and (2) JSON Object interface {@link JSONInterface}.</p>
+ * <p> This class is a 'SUPER/PARENT' class of org.ASUX.yaml.CollectionsImpl.Cmd and org.ASUX.yaml.NodeImpl.Cmd</p>
  * <p> Those two subclasses helps process YAML files using (either the java.util Collections classes, by leveraging the EsotericSoftware's YamlBeans library, or the SnakeYaml library respectively).</p>
  * <p> This class is the "wrapper-processor" for the various "YAML-commands" (which traverse a YAML file to do what you want).</p>
  *
@@ -111,7 +109,7 @@ public class Cmd {
             //--------------------------------
             // First check to see if a static method called Run(/* no parameters */) is defined.
             // If not, then try run( date, String, CrontabEntry, Timer )...
-            final Class[] paramClassList = { CmdLineArgsCommon.class };
+            final Class<?>[] paramClassList = { CmdLineArgsCommon.class };
             final Object[] methodArgs = { _cmdLineArgs };
             org.ASUX.common.GenericProgramming.invokeStaticMethod( implMainEntryClass, "go", paramClassList, methodArgs );
             if ( _cmdLineArgs.verbose ) System.out.println( HDR +"returned from successfully invoking "+implMainEntryClassNameStr+".main().");
@@ -161,35 +159,6 @@ public class Cmd {
                 final CmdLineArgsCommon subClassObj = (CmdLineArgsCommon) cmd;
                 go( subClassObj );
             }
-
-            // String implMainEntryClassNameStr = null;
-            // if ( YAML_Libraries.isCollectionsImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
-            //     implMainEntryClassNameStr = "org.ASUX.yaml.CollectionsImpl.Cmd";
-            //
-            // } else if ( YAML_Libraries.isNodeImpl( cmdLineArgsBasic.YAMLLibrary ) ) {
-            //     implMainEntryClassNameStr = "org.ASUX.YAML.NodeImpl.Cmd";
-            // }
-            // assertNotNull( implMainEntryClassNameStr ); // :-) I'm relying on YAML_library ENUM-class to make sure this ass-ert does NOT throw
-            //
-            // //--------------------------------
-            // // returns: protected Class<?> -- throws ClassNotFoundException
-            // final Class<?> implMainEntryClass = Cmd.class.getClassLoader().loadClass(implMainEntryClassNameStr);
-            // // findClass() method of ClassLoader is NOT VISIBLE - its a protected method.
-            // // The findClass() method searches for the class in the current class loader, if the class wasn't found by the parent class loader.
-            // // i.e., findClass() will be invoked by loadClass(), after checking the parent class loader for the requested class.
-            // if ( cmdLineArgsBasic.verbose )  System.out.println( HDR +"implMainEntryClassNameStr=["+implMainEntryClassNameStr+"] successfully loaded using ClassLoader.");
-            //
-            // //--------------------------------
-            // // First check to see if a static method called Run(/* no parameters */) is defined.
-            // // If not, then try run( date, String, CrontabEntry, Timer )...
-            // final Class[] paramClassList = { String[].class };
-            // final Object[] methodArgs = { args };
-            // org.ASUX.common.GenericProgramming.invokeStaticMethod( implMainEntryClass, "main", paramClassList, methodArgs );
-            // if ( cmdLineArgsBasic.verbose ) System.out.println( HDR +"returned from successfully invoking "+implMainEntryClassNameStr+".main().");
-            //
-            // // !!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!
-            // // It's the assumption that the main() method of the 'implMainEntryClass' .. will internally invoke <implMainEntryClass>.startYAMLImplementation()
-            // // Basically, bottomline: This method does NOT have to invoke <implMainEntryClass>.startYAMLImplementation().
 
         } catch (Throwable t) {
             t.printStackTrace(System.err);
